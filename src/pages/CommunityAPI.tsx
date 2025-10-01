@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Users, MessageSquare, Heart, Send, Filter, Plus, Loader2, AlertCircle, TrendingUp } from 'lucide-react';
-import { postsAPI, commentsAPI, authAPI, analyticsAPI } from '../../services/api';
+import { Users, MessageSquare, Heart, Send, Plus, Loader2, AlertCircle, TrendingUp } from 'lucide-react';
+import { postsAPI, commentsAPI, authAPI, analyticsAPI } from '../services/api';
 
 interface Post {
   id: string;
@@ -35,7 +35,6 @@ export default function CommunityAPI() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
-  const [showNewPostModal, setShowNewPostModal] = useState(false);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
@@ -50,11 +49,7 @@ export default function CommunityAPI() {
 
   const trackPageView = async () => {
     try {
-      await analyticsAPI.trackEvent({
-        type: 'page_view',
-        data: { page: 'community' },
-        page_path: '/comunidade'
-      });
+      await analyticsAPI.trackEvent('page_view', { page: 'community' }, '/comunidade');
     } catch (err) {
       console.error('Erro ao rastrear visualização:', err);
     }
@@ -107,11 +102,7 @@ export default function CommunityAPI() {
       // Recarregar posts para atualizar contador
       loadPosts();
       
-      await analyticsAPI.trackEvent({
-        type: 'like',
-        data: { post_id: postId },
-        page_path: '/comunidade'
-      });
+      await analyticsAPI.trackEvent('like', { post_id: postId }, '/comunidade');
     } catch (err) {
       console.error('Erro ao curtir post:', err);
     }
@@ -126,17 +117,16 @@ export default function CommunityAPI() {
     if (!newComment.trim() || !selectedPost) return;
 
     try {
-      await commentsAPI.create(selectedPost.id, newComment);
+      await commentsAPI.create({
+        post_id: selectedPost.id,
+        content: newComment
+      });
       setNewComment('');
       // Recarregar comentários e posts (para atualizar contador)
       loadComments(selectedPost.id);
       loadPosts();
       
-      await analyticsAPI.trackEvent({
-        type: 'comment',
-        data: { post_id: selectedPost.id },
-        page_path: '/comunidade'
-      });
+      await analyticsAPI.trackEvent('comment', { post_id: selectedPost.id }, '/comunidade');
     } catch (err) {
       console.error('Erro ao adicionar comentário:', err);
       alert('Erro ao adicionar comentário. Tente novamente.');
@@ -249,7 +239,7 @@ export default function CommunityAPI() {
         {user && (
           <div className="mb-6 flex justify-center">
             <button
-              onClick={() => setShowNewPostModal(true)}
+              onClick={() => alert('Funcionalidade de criar posts será implementada em breve!')}
               className="flex items-center gap-2 bg-gradient-to-r from-green-500 to-teal-500 text-white px-8 py-4 rounded-2xl font-bold hover:shadow-lg transition-all transform hover:scale-105"
             >
               <Plus className="w-6 h-6" />

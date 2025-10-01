@@ -61,11 +61,7 @@ export default function DiseaseDetailAPI() {
 
   const trackPageView = async () => {
     try {
-      await analyticsAPI.trackEvent({
-        type: 'page_view',
-        data: { page: 'disease_detail', slug },
-        page_path: `/doencas/${slug}`
-      });
+      await analyticsAPI.trackEvent('page_view', { page: 'disease_detail', slug }, `/doencas/${slug}`);
     } catch (err) {
       console.error('Erro ao rastrear visualização:', err);
     }
@@ -75,11 +71,7 @@ export default function DiseaseDetailAPI() {
     if (!disease) return;
     
     try {
-      await analyticsAPI.trackEvent({
-        type: 'share',
-        data: { disease_id: disease.id, disease_name: disease.name },
-        page_path: `/doencas/${slug}`
-      });
+      await analyticsAPI.trackEvent('share', { disease_id: disease.id, disease_name: disease.name }, `/doencas/${slug}`);
 
       if (navigator.share) {
         await navigator.share({
