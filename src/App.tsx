@@ -16,6 +16,7 @@ import ColoringGame from './pages/ColoringGame';
 import HangmanGame from './pages/HangmanGame';
 import Stories from './pages/Stories';
 import Community from './pages/Community';
+import CommunityAPI from './pages/CommunityAPI';
 import Resources from './pages/Resources';
 import LoadingScreen from './components/common/LoadingScreen';
 
@@ -55,7 +56,7 @@ const App: React.FC = () => {
       case 'stories':
         return <Stories />;
       case 'community':
-        return <Community />;
+        return useDiseaseAPI ? <CommunityAPI /> : <Community />;
       case 'resources':
         return <Resources />;
       default:
