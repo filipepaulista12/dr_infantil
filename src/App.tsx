@@ -4,7 +4,7 @@ import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import HomePage from './pages/HomePage';
 import DiseaseLibrary from './pages/DiseaseLibrary';
-// import DiseaseDetail from './pages/DiseaseDetail';
+import DiseaseDetail from './pages/DiseaseDetail';
 import VideoLibrary from './pages/VideoLibrary';
 import GamesHub from './pages/GamesHub';
 import Quiz from './pages/Quiz';
@@ -31,6 +31,8 @@ const App: React.FC = () => {
         return <HomePage />;
       case 'diseases':
         return <DiseaseLibrary />;
+      case 'disease-detail':
+        return <DiseaseDetail />;
       case 'videos':
         return <VideoLibrary />;
       case 'games':
