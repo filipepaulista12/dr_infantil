@@ -12,18 +12,10 @@ import MemoryGame from './pages/MemoryGame';
 import PuzzleGame from './pages/PuzzleGame';
 import ColoringGame from './pages/ColoringGame';
 import HangmanGame from './pages/HangmanGame';
+import Stories from './pages/Stories';
+import Community from './pages/Community';
+import Resources from './pages/Resources';
 import LoadingScreen from './components/common/LoadingScreen';
-
-// Temporary pages (will be replaced with full implementations)
-const TempPage: React.FC<{ title: string; emoji: string }> = ({ title, emoji }) => (
-  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
-    <div className="text-center">
-      <div className="text-6xl mb-4">{emoji}</div>
-      <h2 className="text-3xl font-bold text-gray-800 mb-4">{title}</h2>
-      <p className="text-gray-600">Em desenvolvimento...</p>
-    </div>
-  </div>
-);
 
 const App: React.FC = () => {
   const { currentPage, isLoading } = useAppStore();
@@ -54,11 +46,11 @@ const App: React.FC = () => {
       case 'hangman':
         return <HangmanGame />;
       case 'stories':
-        return <TempPage title="Histórias Especiais" emoji="📖" />;
+        return <Stories />;
       case 'community':
-        return <TempPage title="Comunidade" emoji="👥" />;
+        return <Community />;
       case 'resources':
-        return <TempPage title="Centro de Recursos" emoji="🔍" />;
+        return <Resources />;
       default:
         return <HomePage />;
     }
