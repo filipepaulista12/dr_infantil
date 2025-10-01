@@ -9,6 +9,9 @@ import VideoLibrary from './pages/VideoLibrary';
 import GamesHub from './pages/GamesHub';
 import Quiz from './pages/Quiz';
 import MemoryGame from './pages/MemoryGame';
+import PuzzleGame from './pages/PuzzleGame';
+import ColoringGame from './pages/ColoringGame';
+import HangmanGame from './pages/HangmanGame';
 import LoadingScreen from './components/common/LoadingScreen';
 
 // Temporary pages (will be replaced with full implementations)
@@ -44,6 +47,12 @@ const App: React.FC = () => {
         return <Quiz />;
       case 'memory':
         return <MemoryGame />;
+      case 'puzzle':
+        return <PuzzleGame />;
+      case 'coloring':
+        return <ColoringGame />;
+      case 'hangman':
+        return <HangmanGame />;
       case 'stories':
         return <TempPage title="Histórias Especiais" emoji="📖" />;
       case 'community':
