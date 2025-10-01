@@ -6,6 +6,7 @@ import HomePage from './pages/HomePage';
 import DiseaseLibrary from './pages/DiseaseLibrary';
 import DiseaseLibraryAPI from './pages/DiseaseLibraryAPI';
 import DiseaseDetail from './pages/DiseaseDetail';
+import DiseaseDetailAPI from './pages/DiseaseDetailAPI';
 import VideoLibrary from './pages/VideoLibrary';
 import GamesHub from './pages/GamesHub';
 import Quiz from './pages/Quiz';
@@ -36,7 +37,7 @@ const App: React.FC = () => {
       case 'diseases':
         return useDiseaseAPI ? <DiseaseLibraryAPI /> : <DiseaseLibrary />;
       case 'disease-detail':
-        return <DiseaseDetail />;
+        return useDiseaseAPI ? <DiseaseDetailAPI /> : <DiseaseDetail />;
       case 'videos':
         return <VideoLibrary />;
       case 'games':
