@@ -145,7 +145,7 @@ export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
       // Initial State
-      currentPage: 'home',
+      currentPage: 'diseases',
       navigationItems: initialNavigationItems,
       selectedDisease: null,
       diseases: [],

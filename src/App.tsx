@@ -7,6 +7,8 @@ import DiseaseLibrary from './pages/DiseaseLibrary';
 // import DiseaseDetail from './pages/DiseaseDetail';
 import VideoLibrary from './pages/VideoLibrary';
 import GamesHub from './pages/GamesHub';
+import Quiz from './pages/Quiz';
+import MemoryGame from './pages/MemoryGame';
 import LoadingScreen from './components/common/LoadingScreen';
 
 // Temporary pages (will be replaced with full implementations)
@@ -38,6 +40,10 @@ const App: React.FC = () => {
         return <VideoLibrary />;
       case 'games':
         return <GamesHub />;
+      case 'quiz':
+        return <Quiz />;
+      case 'memory':
+        return <MemoryGame />;
       case 'stories':
         return <TempPage title="Histórias Especiais" emoji="📖" />;
       case 'community':
