@@ -7,6 +7,9 @@ import HomePage from './pages/HomePage';
 // import DiseaseDetail from './pages/DiseaseDetail';
 import VideoLibrary from './pages/VideoLibrary';
 import GamesHub from './pages/GamesHub';
+import Stories from './pages/Stories';
+import Community from './pages/Community';
+import Resources from './pages/Resources';
 import LoadingScreen from './components/common/LoadingScreen';
 
 // Temporary pages (will be replaced with full implementations)
@@ -39,11 +42,11 @@ const App: React.FC = () => {
       case 'games':
         return <GamesHub />;
       case 'stories':
-        return <TempPage title="Histórias Especiais" emoji="📖" />;
+        return <Stories />;
       case 'community':
-        return <TempPage title="Comunidade" emoji="👥" />;
+        return <Community />;
       case 'resources':
-        return <TempPage title="Centro de Recursos" emoji="🔍" />;
+        return <Resources />;
       default:
         return <HomePage />;
     }
