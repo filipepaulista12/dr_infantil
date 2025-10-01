@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAppStore } from './stores/useAppStore';
-import Header from './components/layout/Header';
+import HeaderSimple from './components/layout/HeaderSimple';
 import Footer from './components/layout/Footer';
 import HomePage from './pages/HomePage';
 import DiseaseLibrary from './pages/DiseaseLibrary';
@@ -66,7 +66,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Header />
+      <HeaderSimple />
       <main className="flex-1">
         {renderCurrentPage()}
       </main>
