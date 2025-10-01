@@ -3,12 +3,13 @@ import { useAppStore } from './stores/useAppStore';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import HomePage from './pages/HomePage';
+import DiseaseLibrary from './pages/DiseaseLibrary';
+// import DiseaseDetail from './pages/DiseaseDetail';
 import VideoLibrary from './pages/VideoLibrary';
 import GamesHub from './pages/GamesHub';
-import Stories from './pages/Stories';
-import Community from './pages/Community';
-import Resources from './pages/Resources';
+import LoadingScreen from './components/common/LoadingScreen';
 
+// Temporary pages (will be replaced with full implementations)
 const TempPage: React.FC<{ title: string; emoji: string }> = ({ title, emoji }) => (
   <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
     <div className="text-center">
@@ -20,24 +21,29 @@ const TempPage: React.FC<{ title: string; emoji: string }> = ({ title, emoji }) 
 );
 
 const App: React.FC = () => {
-  const { currentPage } = useAppStore();
+  const { currentPage, isLoading } = useAppStore();
+
+  // Show loading screen while initializing
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
 
   const renderCurrentPage = () => {
     switch (currentPage) {
       case 'home':
         return <HomePage />;
       case 'diseases':
-        return <TempPage title="Biblioteca de Doenças" emoji="📚" />;
+        return <DiseaseLibrary />;
       case 'videos':
         return <VideoLibrary />;
       case 'games':
         return <GamesHub />;
       case 'stories':
-        return <Stories />;
+        return <TempPage title="Histórias Especiais" emoji="📖" />;
       case 'community':
-        return <Community />;
+        return <TempPage title="Comunidade" emoji="👥" />;
       case 'resources':
-        return <Resources />;
+        return <TempPage title="Centro de Recursos" emoji="🔍" />;
       default:
         return <HomePage />;
     }
