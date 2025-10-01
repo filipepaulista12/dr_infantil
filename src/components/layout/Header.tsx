@@ -63,7 +63,8 @@ const Header: React.FC = () => {
     { id: 'games', label: 'Jogos', href: '/games' },
     { id: 'stories', label: 'Histórias', href: '/stories' },
     { id: 'community', label: 'Comunidade', href: '/community' },
-    { id: 'resources', label: 'Recursos', href: '/resources' }
+    { id: 'resources', label: 'Recursos', href: '/resources' },
+    { id: 'favorites', label: 'Favoritos', href: '/favorites' }
   ];
 
   const handleNavigation = (pageId: string) => {

@@ -41,7 +41,7 @@ export default function MemoryGame() {
   }, []);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval>;
     if (isGameActive && !gameComplete) {
       interval = setInterval(() => {
         setTime(prev => prev + 1);

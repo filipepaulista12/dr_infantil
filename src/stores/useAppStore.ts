@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import type { 
   Disease, 
   Video, 
@@ -141,13 +140,11 @@ const initialNavigationItems: NavigationItem[] = [
 
 // ========================= ZUSTAND STORE =========================
 
-export const useAppStore = create<AppState>()(
-  persist(
-    (set, get) => ({
-      // Initial State
-      currentPage: 'diseases',
-      navigationItems: initialNavigationItems,
-      selectedDisease: null,
+export const useAppStore = create<AppState>()((set, get) => ({
+  // Initial State
+  currentPage: 'home',
+  navigationItems: initialNavigationItems,
+  selectedDisease: null,
       diseases: [],
       videos: [],
       quizzes: [],
@@ -303,16 +300,7 @@ export const useAppStore = create<AppState>()(
       setError: (error: string | null) => {
         set({ error });
       }
-    }),
-    {
-      name: 'dr-infantil-storage',
-      partialize: (state) => ({
-        userProgress: state.userProgress,
-        currentUser: state.currentUser,
-        filters: state.filters
-      })
-    }
-  )
+    })
 );
 
 // ========================= SELECTOR HOOKS =========================

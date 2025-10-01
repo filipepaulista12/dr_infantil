@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Heart, Share2, BookOpen, Activity, Stethoscope, Users, AlertCircle, Loader2 } from 'lucide-react';
 import { diseasesAPI, analyticsAPI } from '../services/api';
+import { useFavorites } from '../hooks/useFavorites';
 
 interface Disease {
   id: string;
@@ -33,7 +34,7 @@ export default function DiseaseDetailAPI() {
   const [disease, setDisease] = useState<Disease | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isFavorite, setIsFavorite] = useState(false);
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   useEffect(() => {
     if (slug) {
@@ -203,13 +204,19 @@ export default function DiseaseDetailAPI() {
                   Compartilhar
                 </button>
                 <button
-                  onClick={() => setIsFavorite(!isFavorite)}
+                  onClick={() => toggleFavorite({
+                    id: disease.id,
+                    type: 'disease',
+                    title: disease.name,
+                    description: disease.short_description,
+                    category: disease.category
+                  })}
                   className={`flex items-center gap-2 px-6 py-3 rounded-xl transition-all transform hover:scale-105 ${
-                    isFavorite ? 'bg-red-500' : 'bg-white/20 hover:bg-white/30'
+                    isFavorite(disease.id) ? 'bg-red-500' : 'bg-white/20 hover:bg-white/30'
                   }`}
                 >
-                  <Heart className={`w-5 h-5 ${isFavorite ? 'fill-current' : ''}`} />
-                  {isFavorite ? 'Favoritado' : 'Favoritar'}
+                  <Heart className={`w-5 h-5 ${isFavorite(disease.id) ? 'fill-current' : ''}`} />
+                  {isFavorite(disease.id) ? 'Favoritado' : 'Favoritar'}
                 </button>
               </div>
             </div>

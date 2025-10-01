@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Users, MessageSquare, Heart, Send, Plus, Loader2, AlertCircle, TrendingUp } from 'lucide-react';
 import { postsAPI, commentsAPI, authAPI, analyticsAPI } from '../services/api';
+import NewPostModal from '../components/community/NewPostModal';
 
 interface Post {
   id: string;
@@ -39,6 +40,8 @@ export default function CommunityAPI() {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [loadingComments, setLoadingComments] = useState(false);
+  const [showNewPostModal, setShowNewPostModal] = useState(false);
+  const [creatingPost, setCreatingPost] = useState(false);
 
   useEffect(() => {
     const currentUser = authAPI.getUser();
@@ -133,6 +136,31 @@ export default function CommunityAPI() {
     }
   };
 
+  const handleCreatePost = async (postData: {
+    title: string;
+    content: string;
+    category: string;
+    tags?: string[];
+  }) => {
+    if (!user) {
+      alert('Você precisa estar logado para criar posts!');
+      return;
+    }
+
+    try {
+      setCreatingPost(true);
+      await postsAPI.create(postData);
+      setShowNewPostModal(false);
+      await loadPosts(); // Recarrega a lista de posts
+      alert('Post criado com sucesso!');
+    } catch (err: any) {
+      console.error('Erro ao criar post:', err);
+      alert(err.response?.data?.message || 'Erro ao criar post');
+    } finally {
+      setCreatingPost(false);
+    }
+  };
+
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -203,6 +231,19 @@ export default function CommunityAPI() {
           <p className="text-xl text-gray-600 mb-4">
             Compartilhe experiências, tire dúvidas e encontre apoio
           </p>
+          
+          {/* Nova Publicação Button */}
+          {user && (
+            <div className="mb-6">
+              <button
+                onClick={() => setShowNewPostModal(true)}
+                className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-8 py-3 rounded-xl font-semibold hover:from-purple-600 hover:to-blue-600 transition-all transform hover:scale-105 shadow-lg flex items-center gap-2 mx-auto"
+              >
+                <Plus className="w-5 h-5" />
+                Nova Publicação
+              </button>
+            </div>
+          )}
           
           {/* Backend Badge */}
           <div className="flex justify-center gap-3">
@@ -456,6 +497,14 @@ export default function CommunityAPI() {
           </div>
         )}
       </div>
+
+      {/* New Post Modal */}
+      <NewPostModal
+        isOpen={showNewPostModal}
+        onClose={() => setShowNewPostModal(false)}
+        onSubmit={handleCreatePost}
+        isLoading={creatingPost}
+      />
     </div>
   );
 }

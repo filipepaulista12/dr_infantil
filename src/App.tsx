@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAppStore } from './stores/useAppStore';
-import HeaderSimple from './components/layout/HeaderSimple';
+import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import HomePage from './pages/HomePage';
 import DiseaseLibrary from './pages/DiseaseLibrary';
@@ -18,6 +18,8 @@ import Stories from './pages/Stories';
 import Community from './pages/Community';
 import CommunityAPI from './pages/CommunityAPI';
 import Resources from './pages/Resources';
+import FavoritesPage from './pages/FavoritesPage';
+import SystemTestPage from './pages/SystemTestPage';
 import LoadingScreen from './components/common/LoadingScreen';
 
 const App: React.FC = () => {
@@ -59,6 +61,10 @@ const App: React.FC = () => {
         return useDiseaseAPI ? <CommunityAPI /> : <Community />;
       case 'resources':
         return <Resources />;
+      case 'favorites':
+        return <FavoritesPage />;
+      case 'system-test':
+        return <SystemTestPage />;
       default:
         return <HomePage />;
     }
@@ -66,7 +72,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <HeaderSimple />
+      <Header />
       <main className="flex-1">
         {renderCurrentPage()}
       </main>
