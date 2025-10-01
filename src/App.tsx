@@ -4,6 +4,7 @@ import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import HomePage from './pages/HomePage';
 import DiseaseLibrary from './pages/DiseaseLibrary';
+import DiseaseLibraryAPI from './pages/DiseaseLibraryAPI';
 import DiseaseDetail from './pages/DiseaseDetail';
 import VideoLibrary from './pages/VideoLibrary';
 import GamesHub from './pages/GamesHub';
@@ -26,11 +27,14 @@ const App: React.FC = () => {
   }
 
   const renderCurrentPage = () => {
+    // Use DiseaseLibraryAPI se backend estiver configurado, senão use versão estática
+    const useDiseaseAPI = import.meta.env.VITE_USE_API === 'true';
+    
     switch (currentPage) {
       case 'home':
         return <HomePage />;
       case 'diseases':
-        return <DiseaseLibrary />;
+        return useDiseaseAPI ? <DiseaseLibraryAPI /> : <DiseaseLibrary />;
       case 'disease-detail':
         return <DiseaseDetail />;
       case 'videos':
