@@ -61,6 +61,8 @@ async function apiRequest<T>(
 
 // Auth API
 export const authAPI = {
+  getUser,
+  
   register: async (email: string, password: string, name: string) => {
     const data = await apiRequest<any>('/auth/register', {
       method: 'POST',
