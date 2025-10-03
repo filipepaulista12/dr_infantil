@@ -18,8 +18,8 @@ const KeyboardShortcuts: React.FC = () => {
       keys: ['Ctrl', 'K'],
       description: 'Abrir busca rápida',
       action: () => {
-        // Implementar busca rápida
-        console.log('Busca rápida');
+        // QuickSearch irá lidar com isso
+        // Mantido aqui apenas para documentação
       },
     },
     {
@@ -56,12 +56,8 @@ const KeyboardShortcuts: React.FC = () => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ctrl+K - Busca rápida
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault();
-        shortcuts[0].action();
-      }
-
+      // Ctrl+K é tratado pelo QuickSearch component
+      
       // Ctrl+H - Home
       if ((e.ctrlKey || e.metaKey) && e.key === 'h') {
         e.preventDefault();

@@ -32,9 +32,15 @@ import { NewDiseasesLibrary } from './components/NewDiseasesLibrary';
 import MatchingGame from './components/games/MatchingGame';
 import CrosswordGame from './components/games/CrosswordGame';
 import KeyboardShortcuts from './components/common/KeyboardShortcuts';
+import QuickSearch from './components/common/QuickSearch';
+import PageTransition from './components/common/PageTransition';
+import { usePageTransition } from './hooks/usePageTransition';
 
 const App: React.FC = () => {
   const { currentPage, isLoading } = useAppStore();
+
+  // Aplicar transições e scroll ao topo
+  usePageTransition(currentPage);
 
   console.log('🚀 App renderizado - currentPage:', currentPage, 'isLoading:', isLoading);
 
@@ -111,11 +117,14 @@ const App: React.FC = () => {
         <SkipLink />
         <Header />
         <main id="main-content" className="flex-1">
-          {renderCurrentPage()}
+          <PageTransition pageKey={currentPage}>
+            {renderCurrentPage()}
+          </PageTransition>
         </main>
         <Footer />
         <FeedbackButton />
         <KeyboardShortcuts />
+        <QuickSearch />
       </div>
     );
   } catch (error) {
