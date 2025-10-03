@@ -1,9 +1,14 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ArrowLeft, Play, Brain, Palette, Type, Puzzle, Sparkles } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore';
+import { trackPageView } from '../utils/analytics';
 
 const GamesHub: React.FC = () => {
   const { setCurrentPage } = useAppStore();
+
+  useEffect(() => {
+    trackPageView('games-hub');
+  }, []);
 
   const games = [
     {

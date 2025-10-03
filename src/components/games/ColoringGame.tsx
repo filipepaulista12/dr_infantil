@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { trackPageView } from '../../utils/analytics';
 
 interface ColoringData {
   id: string;
@@ -83,6 +84,10 @@ const ColoringGame = ({ onBack }: ColoringGameProps) => {
   const svgRef = useRef<SVGSVGElement>(null);
 
   const currentPage = coloringPages[currentPageIndex];
+
+  useEffect(() => {
+    trackPageView('coloring-game');
+  }, []);
 
   useEffect(() => {
     setFilledPaths({});

@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Heart, Sparkles } from 'lucide-react';
+import { trackEvent, trackPageView } from '../utils/analytics';
 
 interface QuizQuestion {
   id: number;
@@ -79,13 +80,24 @@ export default function Quiz() {
   const [showResult, setShowResult] = useState(false);
   const [quizComplete, setQuizComplete] = useState(false);
 
+  useEffect(() => {
+    trackPageView('quiz');
+  }, []);
+
   const handleAnswerClick = (answerIndex: number) => {
     if (selectedAnswer !== null) return;
     
     setSelectedAnswer(answerIndex);
+    const question = quizQuestions[currentQuestion];
+    const isCorrect = answerIndex === question.correctAnswer;
+    trackEvent('quiz_answer_selected', {
+      questionId: question.id,
+      answerIndex,
+      isCorrect
+    });
     
-    if (answerIndex === quizQuestions[currentQuestion].correctAnswer) {
-      setScore(score + 1);
+    if (isCorrect) {
+      setScore((prev) => prev + 1);
     }
 
     setTimeout(() => {
@@ -94,6 +106,13 @@ export default function Quiz() {
   };
 
   const handleNextQuestion = () => {
+    const question = quizQuestions[currentQuestion];
+    const wasCorrect = selectedAnswer === question.correctAnswer;
+    trackEvent('quiz_next_question', {
+      questionId: question.id,
+      wasCorrect
+    });
+
     setShowResult(false);
     setSelectedAnswer(null);
 
@@ -101,10 +120,21 @@ export default function Quiz() {
       setCurrentQuestion(currentQuestion + 1);
     } else {
       setQuizComplete(true);
+      const finalScore = score;
+      const percentage = (finalScore / quizQuestions.length) * 100;
+      trackEvent('quiz_completed', {
+        score: finalScore,
+        totalQuestions: quizQuestions.length,
+        percentage
+      });
     }
   };
 
   const restartQuiz = () => {
+    trackEvent('quiz_restarted', {
+      finalScore: score,
+      totalQuestions: quizQuestions.length
+    });
     setCurrentQuestion(0);
     setScore(0);
     setSelectedAnswer(null);
@@ -165,7 +195,7 @@ export default function Quiz() {
                   </div>
                 </div>
 
-                <p className="text-lg text-gray-600 mb-8">
+                <p className="text-lg text-gray-600 mb-8" aria-live="polite">
                   {percentage >= 80 
                     ? 'Você é incrível! Aprendeu muito sobre doenças raras! 🌟' 
                     : percentage >= 60 
@@ -289,7 +319,7 @@ export default function Quiz() {
               </div>
 
               {showResult && (
-                <div className="text-center">
+                <div className="text-center" aria-live="polite">
                   <div className={`mb-6 p-6 rounded-xl ${
                     selectedAnswer === question.correctAnswer 
                       ? 'bg-green-100 border-2 border-green-300' 

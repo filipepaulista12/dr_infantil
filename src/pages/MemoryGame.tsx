@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Heart, Sparkles, Clock, Brain, Star, RotateCcw } from 'lucide-react';
+import { trackEvent, trackPageView } from '../utils/analytics';
 
 interface Card {
   id: number;
@@ -38,6 +39,7 @@ export default function MemoryGame() {
 
   useEffect(() => {
     initializeGame();
+    trackPageView('memory-game');
   }, []);
 
   useEffect(() => {
@@ -51,6 +53,9 @@ export default function MemoryGame() {
   }, [isGameActive, gameComplete]);
 
   const initializeGame = () => {
+    if (moves > 0) {
+      trackEvent('memory_game_restarted', { moves, matchedPairs });
+    }
     const cardPairs: Card[] = [];
     pairs.forEach((pair, index) => {
       cardPairs.push({
@@ -121,6 +126,11 @@ export default function MemoryGame() {
         if (matchedPairs + 1 === pairs.length) {
           setGameComplete(true);
           setIsGameActive(false);
+          trackEvent('memory_game_completed', {
+            moves,
+            time,
+            pairs: pairs.length
+          });
         }
       }, 500);
     } else {
@@ -264,10 +274,19 @@ export default function MemoryGame() {
           <div className="bg-white rounded-2xl shadow-2xl p-6 mb-6">
             <div className="grid grid-cols-3 md:grid-cols-4 gap-4">
               {cards.map((card) => (
-                <div
+                <button
                   key={card.id}
                   onClick={() => handleCardClick(card.id)}
-                  className={`aspect-square rounded-xl border-4 cursor-pointer transition-all duration-300 transform ${
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleCardClick(card.id);
+                    }
+                  }}
+                  disabled={card.isMatched}
+                  aria-label={card.isFlipped || card.isMatched ? `Carta: ${card.content}` : 'Carta virada'}
+                  aria-pressed={card.isFlipped || card.isMatched}
+                  className={`aspect-square rounded-xl border-4 cursor-pointer transition-all duration-300 transform disabled:cursor-default ${
                     card.isMatched
                       ? 'bg-gradient-to-br from-green-200 to-green-300 border-green-400 scale-95 opacity-60'
                       : card.isFlipped
@@ -288,7 +307,7 @@ export default function MemoryGame() {
                       <div className="text-4xl md:text-5xl opacity-50">❓</div>
                     )}
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           </div>
@@ -310,6 +329,7 @@ export default function MemoryGame() {
             <button
               onClick={initializeGame}
               className="bg-gradient-to-r from-orange-500 to-red-500 text-white py-3 px-6 rounded-full font-semibold hover:from-orange-600 hover:to-red-600 transition-all duration-200 transform hover:scale-105 inline-flex items-center gap-2"
+              aria-label="Reiniciar jogo da memória"
             >
               <RotateCcw className="w-5 h-5" />
               Reiniciar Jogo

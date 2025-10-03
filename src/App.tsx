@@ -22,6 +22,7 @@ import FavoritesPage from './pages/FavoritesPage';
 import SystemTestPage from './pages/SystemTestPage';
 import LoginTestPage from './pages/LoginTestPage';
 import LoadingScreen from './components/common/LoadingScreen';
+import FeedbackButton from './components/common/FeedbackButton';
 
 const App: React.FC = () => {
   const { currentPage, isLoading } = useAppStore();
@@ -80,6 +81,7 @@ const App: React.FC = () => {
         {renderCurrentPage()}
       </main>
       <Footer />
+      <FeedbackButton />
     </div>
   );
 };

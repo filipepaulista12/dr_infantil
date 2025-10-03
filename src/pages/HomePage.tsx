@@ -1,9 +1,14 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAppStore } from '../stores/useAppStore';
 import { Heart, Sparkles, Play, Gamepad2, Brain, Puzzle, Palette, Type, BookOpen, Users } from 'lucide-react';
+import { trackPageView } from '../utils/analytics';
 
 const HomePage: React.FC = () => {
   const { setCurrentPage } = useAppStore();
+
+  useEffect(() => {
+    trackPageView('home');
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-blue-100">

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Heart, Star, AlertCircle, Trophy, Lightbulb, RotateCcw } from 'lucide-react';
+import { trackPageView } from '../utils/analytics';
 
 interface WordData {
   word: string;
@@ -71,6 +72,10 @@ export default function HangmanGame() {
 
   const maxWrongGuesses = 6;
   const currentWord = words[currentWordIndex];
+
+  useEffect(() => {
+    trackPageView('hangman-game');
+  }, []);
 
   useEffect(() => {
     checkGameState();

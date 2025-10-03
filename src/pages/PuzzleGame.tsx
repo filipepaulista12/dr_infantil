@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Puzzle, Shuffle } from 'lucide-react';
+import { trackPageView } from '../utils/analytics';
 
 interface PuzzlePiece {
   id: number;
@@ -62,6 +63,10 @@ export default function PuzzleGame() {
   useEffect(() => {
     initializePuzzle();
   }, [currentDiseaseIndex]);
+
+  useEffect(() => {
+    trackPageView('puzzle-game');
+  }, []);
 
   const initializePuzzle = () => {
     const words = currentDisease.text.split(' ');
