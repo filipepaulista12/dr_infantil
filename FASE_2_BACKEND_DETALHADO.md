@@ -1154,9 +1154,588 @@ export async function disconnectDatabase() {
 export default prisma;
 ```
 
-### Dia 11-14: Sistema de Autenticação
+### Dia 11-14: Sistema de Autenticação Completo
 
-*(Continua na próxima seção...)*
+#### 1. Utilitários de Autenticação
+
+**Criar `src/utils/password.ts`**
+
+```typescript
+// backend/src/utils/password.ts
+import bcrypt from 'bcrypt';
+
+const SALT_ROUNDS = 12;
+
+export async function hashPassword(password: string): Promise<string> {
+  return bcrypt.hash(password, SALT_ROUNDS);
+}
+
+export async function comparePassword(
+  password: string,
+  hashedPassword: string
+): Promise<boolean> {
+  return bcrypt.compare(password, hashedPassword);
+}
+
+export function validatePasswordStrength(password: string): {
+  isValid: boolean;
+  errors: string[];
+} {
+  const errors: string[] = [];
+  
+  if (password.length < 8) {
+    errors.push('Senha deve ter no mínimo 8 caracteres');
+  }
+  
+  if (!/[A-Z]/.test(password)) {
+    errors.push('Senha deve conter pelo menos uma letra maiúscula');
+  }
+  
+  if (!/[a-z]/.test(password)) {
+    errors.push('Senha deve conter pelo menos uma letra minúscula');
+  }
+  
+  if (!/[0-9]/.test(password)) {
+    errors.push('Senha deve conter pelo menos um número');
+  }
+  
+  if (!/[!@#$%^&*]/.test(password)) {
+    errors.push('Senha deve conter pelo menos um caractere especial (!@#$%^&*)');
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors,
+  };
+}
+```
+
+**Criar `src/utils/jwt.ts`**
+
+```typescript
+// backend/src/utils/jwt.ts
+import jwt from 'jsonwebtoken';
+import { config } from '../config/env';
+import crypto from 'crypto';
+
+export interface JWTPayload {
+  userId: string;
+  email: string;
+  role: string;
+}
+
+export function generateAccessToken(payload: JWTPayload): string {
+  return jwt.sign(payload, config.jwt.secret, {
+    expiresIn: config.jwt.expiresIn,
+  });
+}
+
+export function generateRefreshToken(payload: JWTPayload): string {
+  return jwt.sign(payload, config.jwt.refreshSecret, {
+    expiresIn: config.jwt.refreshExpiresIn,
+  });
+}
+
+export function verifyAccessToken(token: string): JWTPayload {
+  return jwt.verify(token, config.jwt.secret) as JWTPayload;
+}
+
+export function verifyRefreshToken(token: string): JWTPayload {
+  return jwt.verify(token, config.jwt.refreshSecret) as JWTPayload;
+}
+
+export function generateVerificationToken(): string {
+  return crypto.randomBytes(32).toString('hex');
+}
+
+export function generateResetPasswordToken(): string {
+  return crypto.randomBytes(32).toString('hex');
+}
+```
+
+#### 2. Middleware de Autenticação
+
+**Criar `src/middlewares/auth.middleware.ts`**
+
+```typescript
+// backend/src/middlewares/auth.middleware.ts
+import { Request, Response, NextFunction } from 'express';
+import { verifyAccessToken } from '../utils/jwt';
+import { logger } from '../utils/logger';
+import prisma from '../config/database';
+
+export interface AuthRequest extends Request {
+  user?: {
+    userId: string;
+    email: string;
+    role: string;
+  };
+}
+
+export async function authenticate(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        success: false,
+        message: 'Token não fornecido',
+      });
+    }
+    
+    const token = authHeader.substring(7);
+    
+    const payload = verifyAccessToken(token);
+    
+    // Verificar se usuário ainda existe
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
+      select: { id: true, email: true, role: true, isVerified: true },
+    });
+    
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Usuário não encontrado',
+      });
+    }
+    
+    req.user = {
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+    };
+    
+    next();
+  } catch (error: any) {
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        success: false,
+        message: 'Token expirado',
+        code: 'TOKEN_EXPIRED',
+      });
+    }
+    
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({
+        success: false,
+        message: 'Token inválido',
+      });
+    }
+    
+    logger.error('Auth middleware error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Erro de autenticação',
+    });
+  }
+}
+
+export function authorize(...allowedRoles: string[]) {
+  return (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Não autenticado',
+      });
+    }
+    
+    if (!allowedRoles.includes(req.user.role)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Sem permissão',
+      });
+    }
+    
+    next();
+  };
+}
+```
+
+#### 3. Service de Autenticação
+
+**Criar `src/services/auth.service.ts`**
+
+```typescript
+// backend/src/services/auth.service.ts
+import prisma from '../config/database';
+import { hashPassword, comparePassword, validatePasswordStrength } from '../utils/password';
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  generateVerificationToken,
+  verifyRefreshToken,
+} from '../utils/jwt';
+import { sendVerificationEmail, sendPasswordResetEmail } from './email.service';
+import { addDays } from 'date-fns';
+
+export class AuthService {
+  async register(data: {
+    email: string;
+    password: string;
+    name: string;
+  }) {
+    // Validar senha
+    const passwordValidation = validatePasswordStrength(data.password);
+    if (!passwordValidation.isValid) {
+      throw new Error(passwordValidation.errors.join(', '));
+    }
+    
+    // Verificar se email já existe
+    const existingUser = await prisma.user.findUnique({
+      where: { email: data.email },
+    });
+    
+    if (existingUser) {
+      throw new Error('Email já cadastrado');
+    }
+    
+    // Hash da senha
+    const hashedPassword = await hashPassword(data.password);
+    
+    // Gerar token de verificação
+    const verificationToken = generateVerificationToken();
+    
+    // Criar usuário
+    const user = await prisma.user.create({
+      data: {
+        email: data.email,
+        password: hashedPassword,
+        name: data.name,
+        verificationToken,
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        isVerified: true,
+      },
+    });
+    
+    // Enviar email de verificação
+    await sendVerificationEmail(user.email, user.name, verificationToken);
+    
+    return {
+      user,
+      message: 'Usuário criado! Verifique seu email.',
+    };
+  }
+  
+  async login(email: string, password: string) {
+    // Buscar usuário
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+    
+    if (!user) {
+      throw new Error('Credenciais inválidas');
+    }
+    
+    // Verificar senha
+    const isPasswordValid = await comparePassword(password, user.password);
+    
+    if (!isPasswordValid) {
+      throw new Error('Credenciais inválidas');
+    }
+    
+    // Gerar tokens
+    const accessToken = generateAccessToken({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+    });
+    
+    const refreshToken = generateRefreshToken({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+    });
+    
+    // Salvar refresh token
+    await prisma.refreshToken.create({
+      data: {
+        token: refreshToken,
+        userId: user.id,
+        expiresAt: addDays(new Date(), 7),
+      },
+    });
+    
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        isVerified: user.isVerified,
+      },
+      accessToken,
+      refreshToken,
+    };
+  }
+  
+  async refreshAccessToken(refreshToken: string) {
+    // Verificar refresh token
+    const payload = verifyRefreshToken(refreshToken);
+    
+    // Buscar token no database
+    const storedToken = await prisma.refreshToken.findUnique({
+      where: { token: refreshToken },
+      include: { user: true },
+    });
+    
+    if (!storedToken || storedToken.expiresAt < new Date()) {
+      throw new Error('Refresh token inválido ou expirado');
+    }
+    
+    // Gerar novo access token
+    const newAccessToken = generateAccessToken({
+      userId: storedToken.user.id,
+      email: storedToken.user.email,
+      role: storedToken.user.role,
+    });
+    
+    return {
+      accessToken: newAccessToken,
+    };
+  }
+  
+  async logout(refreshToken: string) {
+    await prisma.refreshToken.delete({
+      where: { token: refreshToken },
+    });
+  }
+  
+  async verifyEmail(token: string) {
+    const user = await prisma.user.findFirst({
+      where: { verificationToken: token },
+    });
+    
+    if (!user) {
+      throw new Error('Token de verificação inválido');
+    }
+    
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        isVerified: true,
+        verificationToken: null,
+      },
+    });
+    
+    return { message: 'Email verificado com sucesso!' };
+  }
+}
+```
+
+#### 4. Controller de Autenticação
+
+**Criar `src/controllers/auth.controller.ts`**
+
+```typescript
+// backend/src/controllers/auth.controller.ts
+import { Response } from 'express';
+import { AuthRequest } from '../middlewares/auth.middleware';
+import { AuthService } from '../services/auth.service';
+import { logger } from '../utils/logger';
+
+const authService = new AuthService();
+
+export class AuthController {
+  async register(req: AuthRequest, res: Response) {
+    try {
+      const { email, password, name } = req.body;
+      
+      const result = await authService.register({ email, password, name });
+      
+      res.status(201).json({
+        success: true,
+        data: result,
+      });
+    } catch (error: any) {
+      logger.error('Register error:', error);
+      res.status(400).json({
+        success: false,
+        message: error.message || 'Erro ao criar usuário',
+      });
+    }
+  }
+  
+  async login(req: AuthRequest, res: Response) {
+    try {
+      const { email, password } = req.body;
+      
+      const result = await authService.login(email, password);
+      
+      // Configurar cookie com refresh token
+      res.cookie('refreshToken', result.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 dias
+      });
+      
+      res.status(200).json({
+        success: true,
+        data: {
+          user: result.user,
+          accessToken: result.accessToken,
+        },
+      });
+    } catch (error: any) {
+      logger.error('Login error:', error);
+      res.status(401).json({
+        success: false,
+        message: error.message || 'Erro ao fazer login',
+      });
+    }
+  }
+  
+  async refreshToken(req: AuthRequest, res: Response) {
+    try {
+      const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
+      
+      if (!refreshToken) {
+        return res.status(401).json({
+          success: false,
+          message: 'Refresh token não fornecido',
+        });
+      }
+      
+      const result = await authService.refreshAccessToken(refreshToken);
+      
+      res.status(200).json({
+        success: true,
+        data: result,
+      });
+    } catch (error: any) {
+      logger.error('Refresh token error:', error);
+      res.status(401).json({
+        success: false,
+        message: error.message || 'Erro ao renovar token',
+      });
+    }
+  }
+  
+  async logout(req: AuthRequest, res: Response) {
+    try {
+      const refreshToken = req.cookies.refreshToken;
+      
+      if (refreshToken) {
+        await authService.logout(refreshToken);
+      }
+      
+      res.clearCookie('refreshToken');
+      
+      res.status(200).json({
+        success: true,
+        message: 'Logout realizado com sucesso',
+      });
+    } catch (error: any) {
+      logger.error('Logout error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erro ao fazer logout',
+      });
+    }
+  }
+  
+  async verifyEmail(req: AuthRequest, res: Response) {
+    try {
+      const { token } = req.params;
+      
+      const result = await authService.verifyEmail(token);
+      
+      res.status(200).json({
+        success: true,
+        data: result,
+      });
+    } catch (error: any) {
+      logger.error('Verify email error:', error);
+      res.status(400).json({
+        success: false,
+        message: error.message || 'Erro ao verificar email',
+      });
+    }
+  }
+  
+  async getCurrentUser(req: AuthRequest, res: Response) {
+    try {
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          message: 'Não autenticado',
+        });
+      }
+      
+      res.status(200).json({
+        success: true,
+        data: { user: req.user },
+      });
+    } catch (error: any) {
+      logger.error('Get current user error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erro ao buscar usuário',
+      });
+    }
+  }
+}
+```
+
+#### 5. Rotas de Autenticação
+
+**Criar `src/routes/auth.routes.ts`**
+
+```typescript
+// backend/src/routes/auth.routes.ts
+import { Router } from 'express';
+import { AuthController } from '../controllers/auth.controller';
+import { authenticate } from '../middlewares/auth.middleware';
+import { validateRequest } from '../middlewares/validation.middleware';
+import { z } from 'zod';
+
+const router = Router();
+const authController = new AuthController();
+
+// Schemas de validação
+const registerSchema = z.object({
+  body: z.object({
+    email: z.string().email('Email inválido'),
+    password: z.string().min(8, 'Senha deve ter no mínimo 8 caracteres'),
+    name: z.string().min(2, 'Nome deve ter no mínimo 2 caracteres'),
+  }),
+});
+
+const loginSchema = z.object({
+  body: z.object({
+    email: z.string().email('Email inválido'),
+    password: z.string().min(1, 'Senha é obrigatória'),
+  }),
+});
+
+// Rotas públicas
+router.post('/register', validateRequest(registerSchema), authController.register.bind(authController));
+router.post('/login', validateRequest(loginSchema), authController.login.bind(authController));
+router.post('/refresh', authController.refreshToken.bind(authController));
+router.get('/verify-email/:token', authController.verifyEmail.bind(authController));
+
+// Rotas protegidas
+router.post('/logout', authenticate, authController.logout.bind(authController));
+router.get('/me', authenticate, authController.getCurrentUser.bind(authController));
+
+export default router;
+```
+
+---
+
+## 📅 Semana 5-6: APIs Core
+
+*(Documentação das APIs principais será adicionada em seguida...)*
 
 ---
 
