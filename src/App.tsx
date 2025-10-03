@@ -29,6 +29,8 @@ import SubmitContent from './pages/SubmitContent';
 import ModerationPanel from './components/community/ModerationPanel';
 import { loadSubmissions, moderateSubmission } from './utils/submissionStorage';
 import { NewDiseasesLibrary } from './components/NewDiseasesLibrary';
+import MatchingGame from './components/games/MatchingGame';
+import CrosswordGame from './components/games/CrosswordGame';
 
 const App: React.FC = () => {
   const { currentPage, isLoading } = useAppStore();
@@ -67,6 +69,10 @@ const App: React.FC = () => {
         return <ColoringGame />;
       case 'hangman':
         return <HangmanGame />;
+      case 'matching':
+        return <MatchingGame />;
+      case 'crossword':
+        return <CrosswordGame />;
       case 'stories':
         return <Stories />;
       case 'community':

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { ArrowLeft, Play, Brain, Palette, Type, Puzzle, Sparkles } from 'lucide-react';
+import { ArrowLeft, Play, Brain, Palette, Type, Puzzle, Sparkles, Link2, BookText } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore';
 import { trackPageView } from '../utils/analytics';
 
@@ -30,6 +30,26 @@ const GamesHub: React.FC = () => {
       hoverColor: 'hover:from-blue-600 hover:to-indigo-600'
     },
     {
+      id: 'matching',
+      title: 'Jogo de Associação',
+      emoji: '🧩',
+      icon: Puzzle,
+      description: 'Arraste sintomas e associe com as doenças corretas!',
+      color: 'from-purple-500 to-pink-500',
+      hoverColor: 'hover:from-purple-600 hover:to-pink-600',
+      isNew: true
+    },
+    {
+      id: 'crossword',
+      title: 'Palavras Cruzadas',
+      emoji: '📝',
+      icon: Type,
+      description: 'Preencha as palavras cruzadas médicas e aprenda terminologia!',
+      color: 'from-blue-500 to-cyan-500',
+      hoverColor: 'hover:from-blue-600 hover:to-cyan-600',
+      isNew: true
+    },
+    {
       id: 'puzzle',
       title: 'Quebra-Cabeça',
       emoji: '🧩',
@@ -50,7 +70,7 @@ const GamesHub: React.FC = () => {
     {
       id: 'hangman',
       title: 'Jogo da Forca',
-      emoji: '📝',
+      emoji: '�',
       icon: Type,
       description: 'Descubra palavras importantes sobre valores e inclusão!',
       color: 'from-orange-500 to-red-500',
@@ -88,8 +108,13 @@ const GamesHub: React.FC = () => {
                 return (
                   <div
                     key={game.id}
-                    className="bg-white rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-300 border-2 border-gray-200 hover:border-purple-300 transform hover:-translate-y-1"
+                    className="bg-white rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-300 border-2 border-gray-200 hover:border-purple-300 transform hover:-translate-y-1 relative"
                   >
+                    {game.isNew && (
+                      <div className="absolute -top-2 -right-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full animate-pulse">
+                        🆕 NOVO!
+                      </div>
+                    )}
                     <div className="flex items-center gap-3 mb-4">
                       <div className="text-5xl">{game.emoji}</div>
                       <Icon className="text-purple-600" size={32} />
