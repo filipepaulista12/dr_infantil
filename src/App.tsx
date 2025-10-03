@@ -25,6 +25,9 @@ import LoadingScreen from './components/common/LoadingScreen';
 import FeedbackButton from './components/common/FeedbackButton';
 import AnalyticsDashboard from './pages/AnalyticsDashboard';
 import SkipLink from './components/common/SkipLink';
+import SubmitContent from './pages/SubmitContent';
+import ModerationPanel from './components/community/ModerationPanel';
+import { loadSubmissions, moderateSubmission } from './utils/submissionStorage';
 
 const App: React.FC = () => {
   const { currentPage, isLoading } = useAppStore();
@@ -75,6 +78,18 @@ const App: React.FC = () => {
         return <LoginTestPage />;
       case 'analytics':
         return <AnalyticsDashboard />;
+      case 'submit-content':
+        return <SubmitContent />;
+      case 'moderation-panel':
+        return (
+          <ModerationPanel
+            submissions={loadSubmissions()}
+            onModerate={(_id, response) => {
+              moderateSubmission(response);
+              window.location.reload(); // Recarregar para atualizar lista
+            }}
+          />
+        );
       default:
         return <HomePage />;
     }

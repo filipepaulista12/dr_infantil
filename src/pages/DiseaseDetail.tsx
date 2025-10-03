@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 
 import { useAppStore } from '../stores/useAppStore';
-import { ArrowLeft, Heart, Users, Clock, BookOpen, Lightbulb, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, Heart, Users, Clock, BookOpen, Lightbulb, ChevronDown, ChevronUp, Activity } from 'lucide-react';
+import { sindromeDownDetalhada, type ExpandedDiseaseContent } from '../data/sindromeDownDetalhada';
+import { trackEvent } from '../utils/analytics';
 
 interface Tip {
   id: string;
@@ -58,12 +60,29 @@ const mockDiseases: DiseaseData[] = [
 const DiseaseDetail: React.FC = () => {
   const { selectedDisease, setSelectedDisease, setCurrentPage } = useAppStore();
   const [expandedTips, setExpandedTips] = useState<string[]>([]);
+  // const [expandedSection, setExpandedSection] = useState<string | null>('whatIs');
+  const [selectedExplanationLevel, setSelectedExplanationLevel] = useState<'simple' | 'detailed' | 'scientific'>('simple');
 
+  // Verificar se há dados expandidos disponíveis
+  const expandedDisease: ExpandedDiseaseContent | null = 
+    selectedDisease === 'sindrome-down' ? sindromeDownDetalhada : null;
+  
   const disease = mockDiseases.find(d => d.id === selectedDisease);
 
   const handleBack = () => {
+    trackEvent('disease_detail_back', { disease: selectedDisease });
     setSelectedDisease(null);
     setCurrentPage('diseases');
+  };
+
+  // const toggleSection = (section: string) => {
+  //   setExpandedSection(prev => prev === section ? null : section);
+  //   trackEvent('disease_section_toggle', { section, disease: selectedDisease });
+  // };
+
+  const handleExplanationLevelChange = (level: 'simple' | 'detailed' | 'scientific') => {
+    setSelectedExplanationLevel(level);
+    trackEvent('disease_explanation_level', { level, disease: selectedDisease });
   };
 
   const toggleTip = (tipId: string) => {
@@ -95,20 +114,109 @@ const DiseaseDetail: React.FC = () => {
           <button
             onClick={handleBack}
             className="flex items-center gap-2 text-purple-600 hover:text-purple-800 mb-6 font-semibold transition-colors"
+            aria-label="Voltar à biblioteca de doenças"
           >
             <ArrowLeft size={20} />
             Voltar à Biblioteca
           </button>
 
-          <div className="bg-white rounded-2xl shadow-lg p-8 mb-6">
-            <div className="flex items-start gap-4 mb-4">
-              <div className="text-6xl">{disease.emoji}</div>
-              <div className="flex-1">
-                <h1 className="text-4xl font-bold text-gray-800 mb-2">{disease.name}</h1>
-                <p className="text-lg text-gray-600">{disease.description}</p>
+          {/* Se houver conteúdo expandido, mostrar versão completa */}
+          {expandedDisease ? (
+            <>
+              {/* Cabeçalho com seletor de nível */}
+              <div className="bg-white rounded-2xl shadow-lg p-8 mb-6">
+                <div className="flex items-start gap-4 mb-4">
+                  <div className="text-6xl" role="img" aria-label={expandedDisease.name}>{expandedDisease.emoji}</div>
+                  <div className="flex-1">
+                    <h1 className="text-4xl font-bold text-gray-800 mb-4">{expandedDisease.name}</h1>
+                    
+                    {/* Seletor de Nível de Explicação */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Escolha o nível de explicação:
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          onClick={() => handleExplanationLevelChange('simple')}
+                          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                            selectedExplanationLevel === 'simple'
+                              ? 'bg-green-500 text-white'
+                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          }`}
+                          aria-pressed={selectedExplanationLevel === 'simple'}
+                        >
+                          🌟 Para Crianças (6-10 anos)
+                        </button>
+                        <button
+                          onClick={() => handleExplanationLevelChange('detailed')}
+                          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                            selectedExplanationLevel === 'detailed'
+                              ? 'bg-blue-500 text-white'
+                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          }`}
+                          aria-pressed={selectedExplanationLevel === 'detailed'}
+                        >
+                          📚 Para Pais e Adolescentes
+                        </button>
+                        <button
+                          onClick={() => handleExplanationLevelChange('scientific')}
+                          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                            selectedExplanationLevel === 'scientific'
+                              ? 'bg-purple-500 text-white'
+                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          }`}
+                          aria-pressed={selectedExplanationLevel === 'scientific'}
+                        >
+                          🔬 Científico
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Explicação do que é */}
+                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 border-l-4 border-blue-500">
+                      <h2 className="text-xl font-bold text-gray-800 mb-3 flex items-center gap-2">
+                        <Lightbulb className="text-blue-600" size={24} />
+                        O que é?
+                      </h2>
+                      <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                        {expandedDisease.whatIs[selectedExplanationLevel]}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Estatísticas Rápidas */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="bg-white rounded-xl shadow-md p-6">
+                  <Users className="text-purple-600 mb-3" size={32} />
+                  <h3 className="font-bold text-gray-800 mb-1">Prevalência</h3>
+                  <p className="text-gray-600 text-sm">{expandedDisease.statistics.prevalence}</p>
+                </div>
+                <div className="bg-white rounded-xl shadow-md p-6">
+                  <Heart className="text-pink-600 mb-3" size={32} />
+                  <h3 className="font-bold text-gray-800 mb-1">Expectativa de Vida</h3>
+                  <p className="text-gray-600 text-sm">{expandedDisease.statistics.lifeExpectancy}</p>
+                </div>
+                <div className="bg-white rounded-xl shadow-md p-6">
+                  <Activity className="text-green-600 mb-3" size={32} />
+                  <h3 className="font-bold text-gray-800 mb-1">Qualidade de Vida</h3>
+                  <p className="text-gray-600 text-sm">Com apoio adequado, excelente!</p>
+                </div>
+              </div>
+            </>
+          ) : (
+            /* Versão básica para doenças sem conteúdo expandido */
+            <div className="bg-white rounded-2xl shadow-lg p-8 mb-6">
+              <div className="flex items-start gap-4 mb-4">
+                <div className="text-6xl">{disease.emoji}</div>
+                <div className="flex-1">
+                  <h1 className="text-4xl font-bold text-gray-800 mb-2">{disease.name}</h1>
+                  <p className="text-lg text-gray-600">{disease.description}</p>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div className="bg-white rounded-xl shadow-md p-6 text-center">

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useAppStore } from '../stores/useAppStore';
-import { Heart, Sparkles, Play, Gamepad2, Brain, Puzzle, Palette, Type, BookOpen, Users } from 'lucide-react';
+import { Heart, Sparkles, Play, Gamepad2, Brain, Puzzle, Palette, Type, BookOpen, Users, Send } from 'lucide-react';
 import { trackPageView } from '../utils/analytics';
 
 const HomePage: React.FC = () => {
@@ -216,6 +216,19 @@ const HomePage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <button
+                onClick={() => setCurrentPage('submit-content')}
+                className="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-5 rounded-xl font-bold text-lg hover:from-purple-600 hover:to-pink-600 transition-all duration-200 flex items-center justify-center gap-3 transform hover:scale-105 shadow-lg"
+              >
+                <Send className="w-6 h-6" />
+                <div className="text-left">
+                  <div>Compartilhe Conhecimento</div>
+                  <div className="text-sm font-normal opacity-90">
+                    Contribua com conteúdo
+                  </div>
+                </div>
+              </button>
+              
               <button
                 onClick={() => setCurrentPage('stories')}
                 className="bg-gradient-to-r from-orange-400 to-pink-500 text-white p-4 rounded-xl font-semibold hover:from-orange-500 hover:to-pink-600 transition-all duration-200 flex items-center justify-center gap-3 transform hover:scale-105"
