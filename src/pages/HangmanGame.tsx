@@ -80,6 +80,15 @@ export default function HangmanGame() {
   // Keyboard support
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
+      // Handle ESC to close modals
+      if (e.key === 'Escape') {
+        if (gameState === 'won' || gameState === 'lost') {
+          setGameState('playing');
+        }
+        return;
+      }
+      
+      // Handle letter keys only when playing
       if (gameState !== 'playing') return;
       
       const key = e.key.toUpperCase();

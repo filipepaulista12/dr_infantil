@@ -84,6 +84,23 @@ export default function Quiz() {
     trackPageView('quiz');
   }, []);
 
+  // ESC para voltar quando quiz está completo
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && quizComplete) {
+        restartQuiz();
+      }
+    };
+
+    if (quizComplete) {
+      document.addEventListener('keydown', handleEscape);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [quizComplete]);
+
   const handleAnswerClick = (answerIndex: number) => {
     if (selectedAnswer !== null) return;
     

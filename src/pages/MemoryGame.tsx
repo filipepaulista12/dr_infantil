@@ -42,6 +42,23 @@ export default function MemoryGame() {
     trackPageView('memory-game');
   }, []);
 
+  // ESC para fechar modal
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && gameComplete) {
+        setGameComplete(false);
+      }
+    };
+
+    if (gameComplete) {
+      document.addEventListener('keydown', handleEscape);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [gameComplete]);
+
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
     if (isGameActive && !gameComplete) {

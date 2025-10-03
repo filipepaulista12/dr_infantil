@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Palette, RotateCcw, Download, Sparkles } from 'lucide-react';
+import { trackPageView, trackEvent } from '../utils/analytics';
 
 interface ColoringPage {
   id: number;
@@ -87,15 +88,28 @@ export default function ColoringGame() {
 
   const currentPage = coloringPages[currentPageIndex];
 
+  // Track page view
+  useEffect(() => {
+    trackPageView('coloring-game');
+  }, []);
+
   const handlePathClick = (pathIndex: number) => {
     setPathColors({
       ...pathColors,
       [pathIndex]: selectedColor
     });
+    trackEvent('coloring_path_filled', {
+      pageId: currentPage.id,
+      pathIndex,
+      color: selectedColor
+    });
   };
 
   const handleClear = () => {
     setPathColors({});
+    trackEvent('coloring_cleared', {
+      pageId: currentPage.id
+    });
   };
 
   const handleDownload = () => {

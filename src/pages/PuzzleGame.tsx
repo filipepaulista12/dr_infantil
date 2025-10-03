@@ -68,6 +68,23 @@ export default function PuzzleGame() {
     trackPageView('puzzle-game');
   }, []);
 
+  // ESC para fechar modal
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && gameComplete) {
+        setGameComplete(false);
+      }
+    };
+
+    if (gameComplete) {
+      document.addEventListener('keydown', handleEscape);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [gameComplete]);
+
   const initializePuzzle = () => {
     const words = currentDisease.text.split(' ');
     const totalPieces = 16;
