@@ -41,3 +41,47 @@
     @apply bg-white text-primary-600 border-2 border-primary-600 px-6 py-3 rounded-lg font-medium smooth-transition hover:bg-primary-50;
   }
 }
+
+@layer utilities {
+  /* Acessibilidade: Skip Link */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+  
+  .focus\:not-sr-only:focus {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: inherit;
+    margin: inherit;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+  }
+  
+  /* Melhor contraste para focus states */
+  *:focus-visible {
+    outline: 3px solid #7c3aed;
+    outline-offset: 2px;
+  }
+  
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    body {
+      --tw-bg-opacity: 1;
+      background-color: #ffffff;
+    }
+    
+    button, a {
+      border: 2px solid currentColor;
+    }
+  }
+}

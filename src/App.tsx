@@ -24,6 +24,7 @@ import LoginTestPage from './pages/LoginTestPage';
 import LoadingScreen from './components/common/LoadingScreen';
 import FeedbackButton from './components/common/FeedbackButton';
 import AnalyticsDashboard from './pages/AnalyticsDashboard';
+import SkipLink from './components/common/SkipLink';
 
 const App: React.FC = () => {
   const { currentPage, isLoading } = useAppStore();
@@ -82,8 +83,9 @@ const App: React.FC = () => {
   try {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
+        <SkipLink />
         <Header />
-        <main className="flex-1">
+        <main id="main-content" className="flex-1">
           {renderCurrentPage()}
         </main>
         <Footer />

@@ -221,6 +221,7 @@ export default function PuzzleGame() {
               <button
                 onClick={handlePrevDisease}
                 disabled={currentDiseaseIndex === 0}
+                aria-label="Doença anterior"
                 className={`py-2 px-4 rounded-lg transition-colors ${
                   currentDiseaseIndex === 0
                     ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
@@ -243,6 +244,7 @@ export default function PuzzleGame() {
               <button
                 onClick={handleNextDisease}
                 disabled={currentDiseaseIndex === diseases.length - 1}
+                aria-label="Próxima doença"
                 className={`py-2 px-4 rounded-lg transition-colors ${
                   currentDiseaseIndex === diseases.length - 1
                     ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
@@ -259,7 +261,9 @@ export default function PuzzleGame() {
               </div>
               <button
                 onClick={() => setShowHint(!showHint)}
-                className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-4 py-2 rounded-lg transition-colors"
+                className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-4 py-2 rounded-lg transition-colors focus:ring-2 focus:ring-yellow-500 focus:outline-none"
+                aria-label={showHint ? 'Esconder dica' : 'Ver dica'}
+                aria-expanded={showHint}
               >
                 {showHint ? 'Esconder Dica' : 'Ver Dica'}
               </button>
@@ -277,19 +281,31 @@ export default function PuzzleGame() {
           {/* Puzzle Grid */}
           <div className="bg-white rounded-2xl shadow-2xl p-6 mb-6">
             <div className="grid grid-cols-4 gap-2 max-w-2xl mx-auto">
-              {pieces.map((piece) => (
-                <div
-                  key={piece.id}
-                  onClick={() => handlePieceClick(piece.currentPosition)}
-                  className={`aspect-square rounded-lg border-2 flex items-center justify-center p-2 text-center transition-all duration-200 ${getPieceColor(
-                    piece
-                  )}`}
-                >
-                  <span className="text-xs font-medium text-gray-800 leading-tight">
-                    {piece.content}
-                  </span>
-                </div>
-              ))}
+              {pieces.map((piece) => {
+                const isMovable = !piece.isEmpty && getPieceColor(piece).includes('cursor-pointer');
+                return (
+                  <button
+                    key={piece.id}
+                    onClick={() => handlePieceClick(piece.currentPosition)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handlePieceClick(piece.currentPosition);
+                      }
+                    }}
+                    disabled={!isMovable}
+                    aria-label={piece.isEmpty ? 'Espaço vazio' : `Peça: ${piece.content}${piece.currentPosition === piece.correctPosition ? ' (posição correta)' : ''}`}
+                    aria-pressed={piece.currentPosition === piece.correctPosition}
+                    className={`aspect-square rounded-lg border-2 flex items-center justify-center p-2 text-center transition-all duration-200 focus:ring-2 focus:ring-purple-500 focus:outline-none ${getPieceColor(
+                      piece
+                    )}`}
+                  >
+                    <span className="text-xs font-medium text-gray-800 leading-tight">
+                      {piece.content}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -311,7 +327,8 @@ export default function PuzzleGame() {
           <div className="flex flex-wrap justify-center gap-4">
             <button
               onClick={initializePuzzle}
-              className="bg-gradient-to-r from-orange-500 to-red-500 text-white py-3 px-6 rounded-full font-semibold hover:from-orange-600 hover:to-red-600 transition-all duration-200 transform hover:scale-105 flex items-center gap-2"
+              className="bg-gradient-to-r from-orange-500 to-red-500 text-white py-3 px-6 rounded-full font-semibold hover:from-orange-600 hover:to-red-600 transition-all duration-200 transform hover:scale-105 flex items-center gap-2 focus:ring-2 focus:ring-orange-500 focus:outline-none"
+              aria-label="Embaralhar puzzle novamente"
             >
               <Shuffle size={20} />
               Embaralhar Novamente

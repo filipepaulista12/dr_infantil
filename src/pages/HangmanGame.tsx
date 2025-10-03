@@ -77,6 +77,21 @@ export default function HangmanGame() {
     trackPageView('hangman-game');
   }, []);
 
+  // Keyboard support
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (gameState !== 'playing') return;
+      
+      const key = e.key.toUpperCase();
+      if (alphabet.includes(key) && !guessedLetters.has(key)) {
+        handleLetterClick(key);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [gameState, guessedLetters]);
+
   useEffect(() => {
     checkGameState();
   }, [guessedLetters, wrongGuesses]);
@@ -297,7 +312,9 @@ export default function HangmanGame() {
                 <button
                   onClick={() => setShowHint(!showHint)}
                   disabled={gameState !== 'playing'}
-                  className="w-full bg-gradient-to-r from-yellow-400 to-orange-400 text-white py-3 px-4 rounded-lg font-semibold hover:from-yellow-500 hover:to-orange-500 transition-all duration-200 transform hover:scale-105 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-label={showHint ? 'Esconder dica' : 'Ver dica'}
+                  aria-expanded={showHint}
+                  className="w-full bg-gradient-to-r from-yellow-400 to-orange-400 text-white py-3 px-4 rounded-lg font-semibold hover:from-yellow-500 hover:to-orange-500 transition-all duration-200 transform hover:scale-105 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed focus:ring-2 focus:ring-yellow-500 focus:outline-none"
                 >
                   <Lightbulb size={20} />
                   {showHint ? 'Esconder Dica' : 'Ver Dica'}
@@ -320,19 +337,27 @@ export default function HangmanGame() {
               </h3>
 
               {/* Teclado */}
-              <div className="grid grid-cols-6 gap-3 mb-8">
-                {alphabet.map(letter => (
-                  <button
-                    key={letter}
-                    onClick={() => handleLetterClick(letter)}
-                    disabled={guessedLetters.has(letter) || gameState !== 'playing'}
-                    className={`aspect-square rounded-lg font-bold text-lg transition-all duration-200 transform hover:scale-105 ${getLetterButtonClass(
-                      letter
-                    )}`}
-                  >
-                    {letter}
-                  </button>
-                ))}
+              <div className="grid grid-cols-6 gap-3 mb-8" role="group" aria-label="Teclado de letras">
+                {alphabet.map(letter => {
+                  const isGuessed = guessedLetters.has(letter);
+                  const isCorrect = isGuessed && currentWord.word.includes(letter);
+                  const isWrong = isGuessed && !currentWord.word.includes(letter);
+                  
+                  return (
+                    <button
+                      key={letter}
+                      onClick={() => handleLetterClick(letter)}
+                      disabled={guessedLetters.has(letter) || gameState !== 'playing'}
+                      aria-label={`Letra ${letter}${isCorrect ? ' - acertou' : isWrong ? ' - errou' : ''}`}
+                      aria-pressed={isGuessed}
+                      className={`aspect-square rounded-lg font-bold text-lg transition-all duration-200 transform hover:scale-105 focus:ring-2 focus:ring-purple-500 focus:outline-none ${getLetterButtonClass(
+                        letter
+                      )}`}
+                    >
+                      {letter}
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Instruções */}
@@ -353,7 +378,8 @@ export default function HangmanGame() {
               <div className="text-center mt-6">
                 <button
                   onClick={resetAll}
-                  className="bg-gradient-to-r from-gray-500 to-gray-600 text-white py-3 px-6 rounded-full font-semibold hover:from-gray-600 hover:to-gray-700 transition-all duration-200 transform hover:scale-105 flex items-center gap-2 mx-auto"
+                  aria-label="Reiniciar jogo completamente"
+                  className="bg-gradient-to-r from-gray-500 to-gray-600 text-white py-3 px-6 rounded-full font-semibold hover:from-gray-600 hover:to-gray-700 transition-all duration-200 transform hover:scale-105 flex items-center gap-2 mx-auto focus:ring-2 focus:ring-gray-500 focus:outline-none"
                 >
                   <RotateCcw size={20} />
                   Reiniciar Tudo
