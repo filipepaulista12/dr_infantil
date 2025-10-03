@@ -31,6 +31,7 @@ import { loadSubmissions, moderateSubmission } from './utils/submissionStorage';
 import { NewDiseasesLibrary } from './components/NewDiseasesLibrary';
 import MatchingGame from './components/games/MatchingGame';
 import CrosswordGame from './components/games/CrosswordGame';
+import KeyboardShortcuts from './components/common/KeyboardShortcuts';
 
 const App: React.FC = () => {
   const { currentPage, isLoading } = useAppStore();
@@ -106,7 +107,7 @@ const App: React.FC = () => {
 
   try {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col transition-colors duration-300">
         <SkipLink />
         <Header />
         <main id="main-content" className="flex-1">
@@ -114,6 +115,7 @@ const App: React.FC = () => {
         </main>
         <Footer />
         <FeedbackButton />
+        <KeyboardShortcuts />
       </div>
     );
   } catch (error) {

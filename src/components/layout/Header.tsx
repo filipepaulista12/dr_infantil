@@ -1,6 +1,7 @@
 import React from 'react';
 import { Heart, Menu, X, LogIn, BarChart3, Send } from 'lucide-react';
 import { useAppStore } from '../../stores/useAppStore';
+import ThemeToggle from '../common/ThemeToggle';
 
 const Header: React.FC = () => {
   const { currentPage, setCurrentPage } = useAppStore();
@@ -57,6 +58,8 @@ const Header: React.FC = () => {
 
             {/* Login Button */}
             <div className="ml-4 border-l border-white/20 pl-4 flex items-center gap-2">
+              <ThemeToggle />
+              
               <button
                 onClick={() => handleNavigation('submit-content')}
                 className="flex items-center gap-2 bg-gradient-to-r from-purple-400 to-pink-400 hover:from-purple-500 hover:to-pink-500 px-4 py-2 rounded-full text-sm font-semibold transition-all transform hover:scale-105 shadow-lg"
