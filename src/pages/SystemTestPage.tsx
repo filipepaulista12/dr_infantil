@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { CheckCircle, AlertCircle, Clock, Play, RefreshCw } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore';
 

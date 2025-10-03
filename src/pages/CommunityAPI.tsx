@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { Users, MessageSquare, Heart, Send, Plus, Loader2, AlertCircle, TrendingUp } from 'lucide-react';
 import { postsAPI, commentsAPI, authAPI, analyticsAPI } from '../services/api';
 import NewPostModal from '../components/community/NewPostModal';
+import EditPostModal from '../components/community/EditPostModal';
+import DeleteConfirmModal from '../components/community/DeleteConfirmModal';
+import PostActionsMenu from '../components/community/PostActionsMenu';
 
 interface Post {
   id: string;
@@ -15,6 +18,7 @@ interface Post {
   comments_count: number;
   views_count: number;
   is_pinned: boolean;
+  is_edited?: boolean;
   created_at: string;
   tags: string[];
 }
@@ -42,6 +46,11 @@ export default function CommunityAPI() {
   const [loadingComments, setLoadingComments] = useState(false);
   const [showNewPostModal, setShowNewPostModal] = useState(false);
   const [creatingPost, setCreatingPost] = useState(false);
+  const [showEditPostModal, setShowEditPostModal] = useState(false);
+  const [editingPost, setEditingPost] = useState<Post | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletingPost, setDeletingPost] = useState<Post | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const currentUser = authAPI.getUser();
@@ -159,6 +168,73 @@ export default function CommunityAPI() {
     } finally {
       setCreatingPost(false);
     }
+  };
+
+  const handleEditPost = async (postData: {
+    id: string;
+    title: string;
+    content: string;
+    category: string;
+    tags?: string[];
+  }) => {
+    if (!user) {
+      alert('Você precisa estar logado para editar posts!');
+      return;
+    }
+
+    try {
+      setCreatingPost(true); // Reutilizando o estado de loading
+      await postsAPI.update(postData.id, {
+        title: postData.title,
+        content: postData.content,
+        category: postData.category,
+        tags: postData.tags
+      });
+      setShowEditPostModal(false);
+      setEditingPost(null);
+      await loadPosts(); // Recarrega a lista de posts
+      alert('Post editado com sucesso!');
+    } catch (err: any) {
+      console.error('Erro ao editar post:', err);
+      alert(err.response?.data?.message || 'Erro ao editar post');
+    } finally {
+      setCreatingPost(false);
+    }
+  };
+
+  const handleDeletePost = async () => {
+    if (!user || !deletingPost) {
+      alert('Erro: dados insuficientes para excluir o post!');
+      return;
+    }
+
+    try {
+      setIsDeleting(true);
+      await postsAPI.delete(deletingPost.id);
+      setShowDeleteConfirm(false);
+      setDeletingPost(null);
+      await loadPosts(); // Recarrega a lista de posts
+      alert('Post excluído com sucesso!');
+    } catch (err: any) {
+      console.error('Erro ao excluir post:', err);
+      alert(err.response?.data?.message || 'Erro ao excluir post');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const openEditModal = (post: Post) => {
+    setEditingPost(post);
+    setShowEditPostModal(true);
+  };
+
+  const openDeleteConfirm = (post: Post) => {
+    setDeletingPost(post);
+    setShowDeleteConfirm(true);
+  };
+
+  const isPostAuthor = (post: Post) => {
+    return user && user.id === post.author_id;
   };
 
   const formatTimeAgo = (dateString: string) => {
@@ -280,7 +356,7 @@ export default function CommunityAPI() {
         {user && (
           <div className="mb-6 flex justify-center">
             <button
-              onClick={() => alert('Funcionalidade de criar posts será implementada em breve!')}
+              onClick={() => setShowNewPostModal(true)}
               className="flex items-center gap-2 bg-gradient-to-r from-green-500 to-teal-500 text-white px-8 py-4 rounded-2xl font-bold hover:shadow-lg transition-all transform hover:scale-105"
             >
               <Plus className="w-6 h-6" />
@@ -306,19 +382,32 @@ export default function CommunityAPI() {
               onClick={() => handlePostClick(post)}
             >
               {/* Post Header */}
-              <div className="flex items-start gap-4 mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-blue-400 rounded-full flex items-center justify-center text-2xl flex-shrink-0">
-                  {post.author_avatar || '👤'}
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-blue-400 rounded-full flex items-center justify-center text-2xl flex-shrink-0">
+                    {post.author_avatar || '👤'}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-gray-800">{post.author_name}</h3>
+                    <p className="text-sm text-gray-500">{formatTimeAgo(post.created_at)}</p>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-bold text-gray-800">{post.author_name}</h3>
-                  <p className="text-sm text-gray-500">{formatTimeAgo(post.created_at)}</p>
+                
+                <div className="flex items-center gap-2">
+                  {post.is_pinned && (
+                    <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-bold">
+                      📌 Fixado
+                    </span>
+                  )}
+                  
+                  {/* Post Actions Menu */}
+                  <PostActionsMenu
+                    isAuthor={isPostAuthor(post)}
+                    isEdited={post.is_edited}
+                    onEdit={() => openEditModal(post)}
+                    onDelete={() => openDeleteConfirm(post)}
+                  />
                 </div>
-                {post.is_pinned && (
-                  <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-bold">
-                    📌 Fixado
-                  </span>
-                )}
               </div>
 
               {/* Post Content */}
@@ -504,6 +593,36 @@ export default function CommunityAPI() {
         onClose={() => setShowNewPostModal(false)}
         onSubmit={handleCreatePost}
         isLoading={creatingPost}
+      />
+
+      {/* Edit Post Modal */}
+      <EditPostModal
+        isOpen={showEditPostModal}
+        onClose={() => {
+          setShowEditPostModal(false);
+          setEditingPost(null);
+        }}
+        onSubmit={handleEditPost}
+        isLoading={creatingPost}
+        postData={editingPost ? {
+          id: editingPost.id,
+          title: editingPost.title,
+          content: editingPost.content,
+          category: editingPost.category,
+          tags: editingPost.tags || []
+        } : undefined}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={showDeleteConfirm}
+        onClose={() => {
+          setShowDeleteConfirm(false);
+          setDeletingPost(null);
+        }}
+        onConfirm={handleDeletePost}
+        isLoading={isDeleting}
+        postTitle={deletingPost?.title || ''}
       />
     </div>
   );

@@ -32,6 +32,37 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Script de teste para verificação do sistema -->
+    <script>
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          console.log('🚀 DR Infantil carregado!');
+          console.log('🔧 INSTRUÇÕES DE TESTE:');
+          console.log('   1. Navegue para a página de Comunidade');
+          console.log('   2. Tente fazer login com credenciais:');
+          console.log('      - admin@drinfantil.com.br / admin123');
+          console.log('      - moderador@drinfantil.com.br / mod123');
+          console.log('      - teste@exemplo.com / teste123');
+          console.log('   3. Teste as funcionalidades de CRUD de posts');
+          
+          // Testar conexão do backend
+          fetch('http://localhost:3001/health')
+            .then(res => {
+              if (res.ok) {
+                console.log('✅ Backend conectado em localhost:3001');
+              } else {
+                console.log('⚠️ Backend respondeu com erro:', res.status);
+              }
+            })
+            .catch(err => {
+              console.log('❌ Backend não conectado. Sistema usando MOCK.');
+              console.log('🔄 Dados simulados ativos para desenvolvimento.');
+            });
+        }, 1000);
+      });
+    </script>
+    
     <script>
       console.log('🌐 HTML carregado!');
       console.log('📍 Root element:', document.getElementById('root'));

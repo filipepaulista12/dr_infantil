@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { Users, Heart, MessageCircle, ThumbsUp, Send, Star, Award } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Users, Heart, MessageCircle, ThumbsUp, Send, Star, Award, User, LogOut } from 'lucide-react';
+import { getUser } from '../services/api';
 
 interface Post {
   id: number;
@@ -116,6 +117,10 @@ export default function Community() {
   const [selectedCategory, setSelectedCategory] = useState<string>('todas');
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [newComment, setNewComment] = useState('');
+  const [user, setUser] = useState<any>(null);
+  const [loginEmail, setLoginEmail] = useState('admin@drinfantil.com.br');
+  const [loginPassword, setLoginPassword] = useState('admin123');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const filteredPosts =
     selectedCategory === 'todas'
@@ -123,6 +128,56 @@ export default function Community() {
       : posts.filter(post => post.category === selectedCategory);
 
   const postComments = comments.filter(comment => comment.postId === selectedPost?.id);
+
+  // Carregar usuário do localStorage
+  useEffect(() => {
+    const storedUser = getUser();
+    if (storedUser) {
+      setUser(storedUser);
+    }
+  }, []);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoggingIn(true);
+
+    try {
+      // Simulação de login
+      if (loginEmail === 'admin@drinfantil.com.br' && loginPassword === 'admin123') {
+        const mockUser = {
+          id: '1',
+          name: 'Administrador',
+          email: 'admin@drinfantil.com.br',
+          role: 'admin'
+        };
+        localStorage.setItem('dr_infantil_user', JSON.stringify(mockUser));
+        setUser(mockUser);
+        alert('Login realizado com sucesso!');
+      } else if (loginEmail === 'teste@exemplo.com' && loginPassword === 'teste123') {
+        const mockUser = {
+          id: '2',
+          name: 'Usuário Teste',
+          email: 'teste@exemplo.com',
+          role: 'user'
+        };
+        localStorage.setItem('dr_infantil_user', JSON.stringify(mockUser));
+        setUser(mockUser);
+        alert('Login realizado com sucesso!');
+      } else {
+        alert('Credenciais inválidas!');
+      }
+    } catch (error) {
+      alert('Erro no login. Tente novamente.');
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('dr_infantil_user');
+    setUser(null);
+    alert('Logout realizado com sucesso!');
+  };
 
   const getCategoryColor = (category: string) => {
     const colors: { [key: string]: string } = {
@@ -171,206 +226,283 @@ export default function Community() {
             </p>
           </div>
 
-          {/* Filtros de Categoria */}
-          <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
-            <h3 className="text-lg font-bold text-gray-800 mb-4">Filtrar por categoria:</h3>
-            <div className="flex flex-wrap gap-3">
-              {categories.map(category => (
+          {/* Login Section */}
+          {!user ? (
+            <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
+              <div className="text-center mb-6">
+                <h3 className="text-2xl font-bold text-gray-800 mb-2">Entre na Comunidade</h3>
+                <p className="text-gray-600">Faça login para participar, compartilhar histórias e interagir com outros membros.</p>
+              </div>
+
+              <form onSubmit={handleLogin} className="max-w-md mx-auto">
+                <div className="mb-4">
+                  <label className="block text-gray-700 text-sm font-bold mb-2">
+                    Email:
+                  </label>
+                  <input
+                    type="email"
+                    value={loginEmail}
+                    onChange={(e) => setLoginEmail(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    required
+                  />
+                </div>
+                <div className="mb-6">
+                  <label className="block text-gray-700 text-sm font-bold mb-2">
+                    Senha:
+                  </label>
+                  <input
+                    type="password"
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    required
+                  />
+                </div>
                 <button
-                  key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
-                  className={`px-4 py-2 rounded-full font-semibold transition-all duration-200 transform hover:scale-105 ${
-                    selectedCategory === category.id
-                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                  }`}
+                  type="submit"
+                  disabled={isLoggingIn}
+                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-3 px-4 rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all duration-200 disabled:opacity-50"
                 >
-                  {category.icon} {category.name}
+                  {isLoggingIn ? 'Entrando...' : 'Entrar na Comunidade'}
                 </button>
-              ))}
-            </div>
-          </div>
+              </form>
 
-          {/* Lista de Posts */}
-          <div className="grid grid-cols-1 gap-6 mb-8">
-            {filteredPosts.map(post => (
-              <div
-                key={post.id}
-                className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-2xl transition-all duration-300 cursor-pointer"
-                onClick={() => handlePostClick(post)}
-              >
-                {/* Header do Post */}
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="text-3xl">{post.authorEmoji}</div>
-                    <div>
-                      <h4 className="font-bold text-gray-800">{post.author}</h4>
-                      <p className="text-sm text-gray-500">{post.timestamp}</p>
-                    </div>
+              <div className="mt-6 text-center text-sm text-gray-600">
+                <p><strong>Contas de Teste:</strong></p>
+                <p>admin@drinfantil.com.br / admin123</p>
+                <p>teste@exemplo.com / teste123</p>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                    <User className="text-white" size={20} />
                   </div>
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-semibold ${getCategoryColor(
-                      post.category
-                    )}`}
+                  <div>
+                    <p className="font-semibold text-gray-800">{user.name}</p>
+                    <p className="text-sm text-gray-600">{user.email}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-all"
+                >
+                  <LogOut size={16} />
+                  Sair
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Conteúdo da Comunidade - Só mostra quando logado */}
+          {user && (
+            <>
+              {/* Filtros de Categoria */}
+              <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <h3 className="text-lg font-bold text-gray-800 mb-4">Filtrar por categoria:</h3>
+                <div className="flex flex-wrap gap-3">
+                  {categories.map(category => (
+                    <button
+                      key={category.id}
+                      onClick={() => setSelectedCategory(category.id)}
+                      className={`px-4 py-2 rounded-full font-semibold transition-all duration-200 transform hover:scale-105 ${
+                        selectedCategory === category.id
+                          ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      }`}
+                    >
+                      {category.icon} {category.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Lista de Posts */}
+              <div className="grid grid-cols-1 gap-6 mb-8">
+                {filteredPosts.map(post => (
+                  <div
+                    key={post.id}
+                    className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-2xl transition-all duration-300 cursor-pointer"
+                    onClick={() => handlePostClick(post)}
                   >
-                    {getCategoryName(post.category)}
-                  </span>
-                </div>
-
-                {/* Conteúdo */}
-                <h3 className="text-xl font-bold text-gray-800 mb-2">{post.title}</h3>
-                <p className="text-gray-600 mb-4">{post.content}</p>
-
-                {/* Footer */}
-                <div className="flex items-center gap-6 text-gray-600">
-                  <button className="flex items-center gap-2 hover:text-red-500 transition-colors">
-                    <Heart size={18} />
-                    <span className="text-sm font-semibold">{post.likes}</span>
-                  </button>
-                  <button className="flex items-center gap-2 hover:text-blue-500 transition-colors">
-                    <MessageCircle size={18} />
-                    <span className="text-sm font-semibold">{post.comments}</span>
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Regras da Comunidade */}
-          <div className="bg-gradient-to-r from-blue-100 to-purple-100 rounded-2xl p-8">
-            <div className="text-center mb-6">
-              <Star className="text-yellow-500 mx-auto mb-4" size={40} />
-              <h3 className="text-2xl font-bold text-gray-800 mb-4">
-                Regras da Comunidade 📜
-              </h3>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-              <div className="bg-white rounded-xl p-6">
-                <div className="flex items-center gap-3 mb-3">
-                  <Heart className="text-red-500" size={24} />
-                  <h4 className="font-bold text-gray-800">Respeito Sempre</h4>
-                </div>
-                <p className="text-gray-600 text-sm">
-                  Trate todos com gentileza e respeito. Cada família tem sua jornada única.
-                </p>
-              </div>
-              <div className="bg-white rounded-xl p-6">
-                <div className="flex items-center gap-3 mb-3">
-                  <Users className="text-blue-500" size={24} />
-                  <h4 className="font-bold text-gray-800">Apoio Mútuo</h4>
-                </div>
-                <p className="text-gray-600 text-sm">
-                  Compartilhe experiências positivas e ofereça apoio a outras famílias.
-                </p>
-              </div>
-              <div className="bg-white rounded-xl p-6">
-                <div className="flex items-center gap-3 mb-3">
-                  <Award className="text-green-500" size={24} />
-                  <h4 className="font-bold text-gray-800">Celebre Conquistas</h4>
-                </div>
-                <p className="text-gray-600 text-sm">
-                  Cada vitória, por menor que seja, merece ser comemorada e compartilhada!
-                </p>
-              </div>
-              <div className="bg-white rounded-xl p-6">
-                <div className="flex items-center gap-3 mb-3">
-                  <MessageCircle className="text-purple-500" size={24} />
-                  <h4 className="font-bold text-gray-800">Diálogo Aberto</h4>
-                </div>
-                <p className="text-gray-600 text-sm">
-                  Faça perguntas, compartilhe dúvidas e aprenda com as experiências dos outros.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Modal de Post Completo */}
-      {selectedPost && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-8 max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
-            {/* Header */}
-            <div className="flex items-start justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="text-4xl">{selectedPost.authorEmoji}</div>
-                <div>
-                  <h4 className="font-bold text-gray-800 text-lg">{selectedPost.author}</h4>
-                  <p className="text-sm text-gray-500">{selectedPost.timestamp}</p>
-                </div>
-              </div>
-              <span
-                className={`px-3 py-1 rounded-full text-xs font-semibold ${getCategoryColor(
-                  selectedPost.category
-                )}`}
-              >
-                {getCategoryName(selectedPost.category)}
-              </span>
-            </div>
-
-            {/* Conteúdo */}
-            <h3 className="text-2xl font-bold text-gray-800 mb-4">{selectedPost.title}</h3>
-            <p className="text-gray-700 mb-6 text-lg leading-relaxed">{selectedPost.content}</p>
-
-            {/* Interações */}
-            <div className="flex items-center gap-6 mb-6 pb-6 border-b">
-              <button className="flex items-center gap-2 text-red-500 hover:text-red-600 transition-colors">
-                <ThumbsUp size={20} />
-                <span className="font-semibold">{selectedPost.likes} curtidas</span>
-              </button>
-              <div className="flex items-center gap-2 text-blue-500">
-                <MessageCircle size={20} />
-                <span className="font-semibold">{postComments.length} comentários</span>
-              </div>
-            </div>
-
-            {/* Comentários */}
-            <div className="mb-6">
-              <h4 className="font-bold text-gray-800 mb-4">Comentários</h4>
-              <div className="space-y-4 mb-4">
-                {postComments.map(comment => (
-                  <div key={comment.id} className="bg-gray-50 rounded-lg p-4">
-                    <div className="flex items-start gap-3">
-                      <div className="text-2xl">{comment.emoji}</div>
-                      <div className="flex-1">
-                        <p className="font-semibold text-gray-800 mb-1">{comment.author}</p>
-                        <p className="text-gray-600 text-sm mb-2">{comment.content}</p>
-                        <button className="flex items-center gap-1 text-gray-500 hover:text-red-500 transition-colors text-xs">
-                          <Heart size={14} />
-                          <span>{comment.likes}</span>
-                        </button>
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{post.authorEmoji}</span>
+                        <div>
+                          <h3 className="font-bold text-gray-800">{post.author}</h3>
+                          <p className="text-sm text-gray-500">{post.timestamp}</p>
+                        </div>
                       </div>
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getCategoryColor(post.category)}`}>
+                        {getCategoryName(post.category)}
+                      </span>
+                    </div>
+
+                    <h4 className="text-xl font-bold text-gray-800 mb-3">{post.title}</h4>
+                    <p className="text-gray-700 mb-4 leading-relaxed">{post.content}</p>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <Heart className="w-5 h-5" />
+                          <span>{post.likes}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <MessageCircle className="w-5 h-5" />
+                          <span>{post.comments}</span>
+                        </div>
+                      </div>
+                      <button className="text-purple-600 hover:text-purple-800 font-semibold">
+                        Ver mais →
+                      </button>
                     </div>
                   </div>
                 ))}
               </div>
 
-              {/* Novo Comentário */}
-              <div className="flex gap-3">
-                <input
-                  type="text"
-                  value={newComment}
-                  onChange={e => setNewComment(e.target.value)}
-                  placeholder="Escreva um comentário..."
-                  className="flex-1 px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
-                />
-                <button className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-lg font-semibold hover:from-purple-600 hover:to-pink-600 transition-all duration-200 flex items-center gap-2">
-                  <Send size={18} />
-                  Enviar
-                </button>
+              {/* Regras da Comunidade */}
+              <div className="bg-gradient-to-r from-blue-100 to-purple-100 rounded-2xl p-8">
+                <div className="text-center mb-6">
+                  <Star className="text-yellow-500 mx-auto mb-4" size={40} />
+                  <h3 className="text-2xl font-bold text-gray-800 mb-4">
+                    Regras da Comunidade 📜
+                  </h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                  <div className="bg-white rounded-xl p-6">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Heart className="text-red-500" size={24} />
+                      <h4 className="font-bold text-gray-800">Respeito Sempre</h4>
+                    </div>
+                    <p className="text-gray-600 text-sm">
+                      Trate todos com gentileza e respeito. Cada família tem sua jornada única.
+                    </p>
+                  </div>
+                  <div className="bg-white rounded-xl p-6">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Users className="text-blue-500" size={24} />
+                      <h4 className="font-bold text-gray-800">Apoio Mútuo</h4>
+                    </div>
+                    <p className="text-gray-600 text-sm">
+                      Compartilhe experiências positivas e ofereça apoio a outras famílias.
+                    </p>
+                  </div>
+                  <div className="bg-white rounded-xl p-6">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Award className="text-green-500" size={24} />
+                      <h4 className="font-bold text-gray-800">Celebre Conquistas</h4>
+                    </div>
+                    <p className="text-gray-600 text-sm">
+                      Cada vitória, por menor que seja, merece ser comemorada e compartilhada!
+                    </p>
+                  </div>
+                  <div className="bg-white rounded-xl p-6">
+                    <div className="flex items-center gap-3 mb-3">
+                      <MessageCircle className="text-purple-500" size={24} />
+                      <h4 className="font-bold text-gray-800">Diálogo Aberto</h4>
+                    </div>
+                    <p className="text-gray-600 text-sm">
+                      Faça perguntas, compartilhe dúvidas e aprenda com as experiências dos outros.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Modal de Post Detalhado */}
+          {selectedPost && user && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+              <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                <div className="p-8">
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl">{selectedPost.authorEmoji}</span>
+                      <div>
+                        <h3 className="text-xl font-bold text-gray-800">{selectedPost.author}</h3>
+                        <p className="text-gray-500">{selectedPost.timestamp}</p>
+                      </div>
+                    </div>
+                    <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getCategoryColor(selectedPost.category)}`}>
+                      {getCategoryName(selectedPost.category)}
+                    </span>
+                  </div>
+
+                  <h2 className="text-3xl font-bold text-gray-800 mb-6">{selectedPost.title}</h2>
+                  <p className="text-lg text-gray-700 mb-8 leading-relaxed">{selectedPost.content}</p>
+
+                  <div className="flex items-center gap-8 mb-8">
+                    <button className="flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-lg transition-colors">
+                      <Heart className="w-5 h-5" />
+                      {selectedPost.likes} Curtidas
+                    </button>
+                    <div className="flex items-center gap-2 text-gray-600">
+                      <MessageCircle className="w-5 h-5" />
+                      {selectedPost.comments} Comentários
+                    </div>
+                  </div>
+
+                  {/* Comentários */}
+                  <div className="border-t pt-8">
+                    <h3 className="text-xl font-bold text-gray-800 mb-6">Comentários</h3>
+                    {postComments.map(comment => (
+                      <div key={comment.id} className="bg-gray-50 rounded-lg p-4 mb-4">
+                        <div className="flex items-center gap-3 mb-3">
+                          <span className="text-xl">{comment.emoji}</span>
+                          <span className="font-semibold text-gray-800">{comment.author}</span>
+                        </div>
+                        <p className="text-gray-700 mb-3">{comment.content}</p>
+                        <div className="flex items-center gap-4">
+                          <button className="flex items-center gap-1 text-gray-600 hover:text-red-600 transition-colors">
+                            <ThumbsUp className="w-4 h-4" />
+                            {comment.likes}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Novo Comentário */}
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <h4 className="font-semibold text-gray-800 mb-3">Adicionar comentário</h4>
+                      <textarea
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)}
+                        placeholder="Compartilhe seus pensamentos..."
+                        className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        rows={3}
+                      />
+                      <div className="flex justify-end gap-3 mt-3">
+                        <button
+                          onClick={handleClosePost}
+                          className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                        >
+                          Cancelar
+                        </button>
+                        <button className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors">
+                          <Send className="w-4 h-4" />
+                          Comentar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end mt-8">
+                    <button
+                      onClick={handleClosePost}
+                      className="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-semibold transition-colors"
+                    >
+                      Fechar
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
-
-            {/* Botão Fechar */}
-            <button
-              onClick={handleClosePost}
-              className="w-full py-3 px-4 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-semibold transition-colors"
-            >
-              Fechar
-            </button>
-          </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

@@ -1,4 +1,15 @@
-// API Configuration
+// API Configuration with adaptive fallback system
+import { 
+  createAdaptiveAPI, 
+  mockAuthAPI, 
+  mockPostsAPI, 
+  mockCommentsAPI, 
+  mockDiseasesAPI, 
+  mockAnalyticsAPI,
+  mockFavoritesAPI,
+  mockResourcesAPI
+} from './mockAPI';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 // Storage keys
@@ -59,8 +70,8 @@ async function apiRequest<T>(
   return data;
 }
 
-// Auth API
-export const authAPI = {
+// Auth API with adaptive fallback
+export const authAPI = createAdaptiveAPI({
   getUser,
   
   register: async (email: string, password: string, name: string) => {
@@ -102,10 +113,10 @@ export const authAPI = {
   getProfile: async () => {
     return apiRequest<any>('/auth/me');
   },
-};
+}, mockAuthAPI);
 
-// Diseases API
-export const diseasesAPI = {
+// Diseases API with adaptive fallback
+export const diseasesAPI = createAdaptiveAPI({
   list: async (params?: { category?: string; search?: string }) => {
     const query = new URLSearchParams(params as any).toString();
     return apiRequest<any>(`/diseases${query ? `?${query}` : ''}`);
@@ -134,10 +145,10 @@ export const diseasesAPI = {
       method: 'DELETE',
     });
   },
-};
+}, mockDiseasesAPI);
 
-// Posts API
-export const postsAPI = {
+// Posts API with adaptive fallback
+export const postsAPI = createAdaptiveAPI({
   list: async (params?: { category?: string; search?: string; limit?: number; offset?: number }) => {
     const query = new URLSearchParams(params as any).toString();
     return apiRequest<any>(`/posts${query ? `?${query}` : ''}`);
@@ -172,10 +183,10 @@ export const postsAPI = {
       method: 'POST',
     });
   },
-};
+}, mockPostsAPI);
 
-// Comments API
-export const commentsAPI = {
+// Comments API with adaptive fallback
+export const commentsAPI = createAdaptiveAPI({
   list: async (postId: string) => {
     return apiRequest<any>(`/comments?postId=${postId}`);
   },
@@ -205,10 +216,10 @@ export const commentsAPI = {
       method: 'POST',
     });
   },
-};
+}, mockCommentsAPI);
 
-// Favorites API
-export const favoritesAPI = {
+// Favorites API with adaptive fallback
+export const favoritesAPI = createAdaptiveAPI({
   list: async (type?: string) => {
     return apiRequest<any>(`/favorites${type ? `?type=${type}` : ''}`);
   },
@@ -229,10 +240,10 @@ export const favoritesAPI = {
   check: async (itemType: string, itemId: string) => {
     return apiRequest<any>(`/favorites/check/${itemType}/${itemId}`);
   },
-};
+}, mockFavoritesAPI);
 
-// Resources API
-export const resourcesAPI = {
+// Resources API with adaptive fallback
+export const resourcesAPI = createAdaptiveAPI({
   list: async (params?: { type?: string; category?: string; search?: string }) => {
     const query = new URLSearchParams(params as any).toString();
     return apiRequest<any>(`/resources${query ? `?${query}` : ''}`);
@@ -267,10 +278,10 @@ export const resourcesAPI = {
       method: 'POST',
     });
   },
-};
+}, mockResourcesAPI);
 
-// Analytics API
-export const analyticsAPI = {
+// Analytics API with adaptive fallback
+export const analyticsAPI = createAdaptiveAPI({
   trackEvent: async (event_type: string, event_data?: any, page_path?: string) => {
     return apiRequest<any>('/analytics/event', {
       method: 'POST',
@@ -290,7 +301,7 @@ export const analyticsAPI = {
   getUserStats: async (userId: string) => {
     return apiRequest<any>(`/analytics/user/${userId}`);
   },
-};
+}, mockAnalyticsAPI);
 
 export default {
   auth: authAPI,

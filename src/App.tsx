@@ -20,6 +20,7 @@ import CommunityAPI from './pages/CommunityAPI';
 import Resources from './pages/Resources';
 import FavoritesPage from './pages/FavoritesPage';
 import SystemTestPage from './pages/SystemTestPage';
+import LoginTestPage from './pages/LoginTestPage';
 import LoadingScreen from './components/common/LoadingScreen';
 
 const App: React.FC = () => {
@@ -33,7 +34,7 @@ const App: React.FC = () => {
   const renderCurrentPage = () => {
     // Use DiseaseLibraryAPI se backend estiver configurado, senão use versão estática
     const useDiseaseAPI = import.meta.env.VITE_USE_API === 'true';
-    
+
     switch (currentPage) {
       case 'home':
         return <HomePage />;
@@ -65,6 +66,8 @@ const App: React.FC = () => {
         return <FavoritesPage />;
       case 'system-test':
         return <SystemTestPage />;
+      case 'login-test':
+        return <LoginTestPage />;
       default:
         return <HomePage />;
     }
