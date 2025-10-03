@@ -28,6 +28,7 @@ import SkipLink from './components/common/SkipLink';
 import SubmitContent from './pages/SubmitContent';
 import ModerationPanel from './components/community/ModerationPanel';
 import { loadSubmissions, moderateSubmission } from './utils/submissionStorage';
+import { NewDiseasesLibrary } from './components/NewDiseasesLibrary';
 
 const App: React.FC = () => {
   const { currentPage, isLoading } = useAppStore();
@@ -48,6 +49,8 @@ const App: React.FC = () => {
         return <HomePage />;
       case 'diseases':
         return useDiseaseAPI ? <DiseaseLibraryAPI /> : <DiseaseLibrary />;
+      case 'new-diseases':
+        return <NewDiseasesLibrary />;
       case 'disease-detail':
         return useDiseaseAPI ? <DiseaseDetailAPI /> : <DiseaseDetail />;
       case 'videos':

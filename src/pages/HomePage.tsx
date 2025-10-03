@@ -142,6 +142,34 @@ const HomePage: React.FC = () => {
 
           {/* Cards de Destaque */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            {/* Card NOVO: Biblioteca Expandida */}
+            <div 
+              onClick={() => setCurrentPage('new-diseases')}
+              className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden border-4 border-gradient-to-r from-purple-500 to-pink-500 cursor-pointer group relative"
+            >
+              <div className="absolute top-2 right-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full animate-pulse">
+                🆕 NOVO!
+              </div>
+              <div className="bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500 p-8 flex items-center justify-center relative">
+                <BookOpen className="w-20 h-20 text-white group-hover:scale-110 transition-transform duration-300" />
+                <Sparkles className="w-8 h-8 text-yellow-300 absolute top-4 left-4 animate-pulse" />
+                <Sparkles className="w-8 h-8 text-yellow-300 absolute bottom-4 right-4 animate-pulse" style={{ animationDelay: '0.5s' }} />
+              </div>
+              <div className="p-6">
+                <h3 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 mb-3 flex items-center gap-2">
+                  <span>Nova Biblioteca</span>
+                  <span className="text-2xl">✨</span>
+                </h3>
+                <p className="text-gray-600 leading-relaxed font-semibold">
+                  Explore 7+ novas doenças com conteúdo completo: para crianças, pais e científico! 🎯
+                </p>
+                <div className="mt-3 flex gap-2">
+                  <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">Neurológicas</span>
+                  <span className="text-xs bg-pink-100 text-pink-800 px-2 py-1 rounded-full">Cardíacas</span>
+                </div>
+              </div>
+            </div>
+
             {/* Card Doenças Raras */}
             <div 
               onClick={() => setCurrentPage('diseases')}
@@ -181,7 +209,10 @@ const HomePage: React.FC = () => {
                 </p>
               </div>
             </div>
+          </div>
 
+          {/* Segunda linha de cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
             {/* Card Jogos */}
             <div 
               onClick={() => setCurrentPage('quiz')}
