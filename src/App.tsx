@@ -27,6 +27,8 @@ import FeedbackButton from './components/common/FeedbackButton';
 const App: React.FC = () => {
   const { currentPage, isLoading } = useAppStore();
 
+  console.log('🚀 App renderizado - currentPage:', currentPage, 'isLoading:', isLoading);
+
   // Show loading screen while initializing
   if (isLoading) {
     return <LoadingScreen />;
@@ -74,16 +76,33 @@ const App: React.FC = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Header />
-      <main className="flex-1">
-        {renderCurrentPage()}
-      </main>
-      <Footer />
-      <FeedbackButton />
-    </div>
-  );
+  try {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <Header />
+        <main className="flex-1">
+          {renderCurrentPage()}
+        </main>
+        <Footer />
+        <FeedbackButton />
+      </div>
+    );
+  } catch (error) {
+    console.error('❌ Erro fatal no App:', error);
+    return (
+      <div className="min-h-screen bg-red-50 flex items-center justify-center p-4">
+        <div className="bg-white p-8 rounded-lg shadow-lg max-w-md">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Erro na Aplicação</h1>
+          <p className="text-gray-700 mb-4">
+            Ocorreu um erro ao carregar a aplicação. Por favor, recarregue a página.
+          </p>
+          <pre className="bg-gray-100 p-4 rounded text-sm overflow-auto">
+            {error instanceof Error ? error.message : String(error)}
+          </pre>
+        </div>
+      </div>
+    );
+  }
 };
 
 export default App;
