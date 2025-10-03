@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { trackPageView } from '../../utils/analytics';
+import { trackEvent, trackPageView } from '../../utils/analytics';
 
 interface ColoringData {
   id: string;
@@ -100,9 +100,19 @@ const ColoringGame = ({ onBack }: ColoringGameProps) => {
       ...prev,
       [pathKey]: selectedColor
     }));
+    
+    trackEvent('coloring_path_filled', {
+      disease: currentPage.disease,
+      color: selectedColor,
+      pathsColored: Object.keys(filledPaths).length + 1
+    });
   };
 
   const clearColoring = () => {
+    trackEvent('coloring_cleared', {
+      disease: currentPage.disease,
+      pathsColored: Object.keys(filledPaths).length
+    });
     setFilledPaths({});
   };
 

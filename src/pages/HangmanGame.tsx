@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Heart, Star, AlertCircle, Trophy, Lightbulb, RotateCcw } from 'lucide-react';
-import { trackPageView } from '../utils/analytics';
+import { trackEvent, trackPageView } from '../utils/analytics';
 
 interface WordData {
   word: string;
@@ -96,6 +96,12 @@ export default function HangmanGame() {
       setGameState('won');
       const points = Math.max(100 - wrongGuesses * 15, 10);
       setTotalScore(totalScore + points);
+      trackEvent('hangman_won', {
+        word: currentWord.word,
+        category: currentWord.category,
+        wrongGuesses,
+        points
+      });
     }
   };
 
@@ -106,9 +112,18 @@ export default function HangmanGame() {
     newGuessedLetters.add(letter);
     setGuessedLetters(newGuessedLetters);
 
-    if (!currentWord.word.includes(letter)) {
+    const isCorrect = currentWord.word.includes(letter);
+    
+    if (!isCorrect) {
       setWrongGuesses(wrongGuesses + 1);
     }
+    
+    trackEvent('hangman_letter_guessed', {
+      letter,
+      isCorrect,
+      word: currentWord.word,
+      wrongGuesses: isCorrect ? wrongGuesses : wrongGuesses + 1
+    });
   };
 
   const getDisplayWord = () => {

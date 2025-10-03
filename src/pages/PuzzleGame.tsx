@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Puzzle, Shuffle } from 'lucide-react';
-import { trackPageView } from '../utils/analytics';
+import { trackEvent, trackPageView } from '../utils/analytics';
 
 interface PuzzlePiece {
   id: number;
@@ -165,6 +165,11 @@ export default function PuzzleGame() {
 
     if (isComplete) {
       setGameComplete(true);
+      trackEvent('puzzle_completed', {
+        disease: currentDisease.name,
+        moves,
+        hintsUsed: showHint ? 1 : 0
+      });
     }
   };
 

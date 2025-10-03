@@ -23,6 +23,7 @@ import SystemTestPage from './pages/SystemTestPage';
 import LoginTestPage from './pages/LoginTestPage';
 import LoadingScreen from './components/common/LoadingScreen';
 import FeedbackButton from './components/common/FeedbackButton';
+import AnalyticsDashboard from './pages/AnalyticsDashboard';
 
 const App: React.FC = () => {
   const { currentPage, isLoading } = useAppStore();
@@ -71,6 +72,8 @@ const App: React.FC = () => {
         return <SystemTestPage />;
       case 'login-test':
         return <LoginTestPage />;
+      case 'analytics':
+        return <AnalyticsDashboard />;
       default:
         return <HomePage />;
     }

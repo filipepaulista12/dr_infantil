@@ -1,5 +1,5 @@
 import React from 'react';
-import { Heart, Menu, X, LogIn } from 'lucide-react';
+import { Heart, Menu, X, LogIn, BarChart3 } from 'lucide-react';
 import { useAppStore } from '../../stores/useAppStore';
 
 const Header: React.FC = () => {
@@ -56,7 +56,16 @@ const Header: React.FC = () => {
             ))}
 
             {/* Login Button */}
-            <div className="ml-4 border-l border-white/20 pl-4">
+            <div className="ml-4 border-l border-white/20 pl-4 flex items-center gap-2">
+              <button
+                onClick={() => handleNavigation('analytics')}
+                className="flex items-center gap-2 bg-white/20 hover:bg-white/30 px-3 py-2 rounded-full text-sm font-medium transition-all"
+                aria-label="Ver Analytics"
+                title="Dashboard de Analytics"
+              >
+                <BarChart3 className="w-4 h-4" />
+              </button>
+              
               <button
                 onClick={() => alert('Sistema de login será implementado em breve!\n\nUse as credenciais:\nadmin@drinfantil.com.br / admin123')}
                 className="flex items-center gap-2 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full text-sm font-medium transition-all"
